@@ -1,3 +1,16 @@
+# [1.4.0](https://github.com/pasquinphilippe/mili-release/compare/v1.3.1...v1.4.0) (2025-01-22)
+
+
+### Bug Fixes
+
+* clean up test directories and update package configuration ([891bb4d](https://github.com/pasquinphilippe/mili-release/commit/891bb4d61207349491166a7fcb47f1f79bb89e33))
+* Remove theme release workflow from CLI package ([51f5cc6](https://github.com/pasquinphilippe/mili-release/commit/51f5cc60f26e2684b6ef9097921725897a9e0bf3))
+
+
+### Features
+
+* Initial theme setup ([9a68d68](https://github.com/pasquinphilippe/mili-release/commit/9a68d68a220254bb67677c26e1c7fecf24c8745c))
+
 ## [1.3.1](https://github.com/pasquinphilippe/mili-release/compare/v1.3.0...v1.3.1) (2025-01-22)
 
 
