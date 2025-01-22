@@ -1,5 +1,5 @@
 {
-  "name": "@pasquinphilippe/mili-release",
+  "name": "milistack-theme",
   "version": "1.0.1",
   "description": "CLI tool for setting up Shopify theme semantic releases",
   "private": false,
@@ -44,7 +44,7 @@
     "semantic-release": "^23.0.0"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public"
   },
   "engines": {
     "node": ">=14"
