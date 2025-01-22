@@ -1,3 +1,17 @@
+# [1.1.0](https://github.com/pasquinphilippe/mili-release/compare/v1.0.1...v1.1.0) (2025-01-22)
+
+
+### Bug Fixes
+
+* bump version for npm publish ([4e4bfa1](https://github.com/pasquinphilippe/mili-release/commit/4e4bfa1280a1daa01254aece1f761eb7bc07d54b))
+* rename package for npm registry ([05d5b41](https://github.com/pasquinphilippe/mili-release/commit/05d5b4128fce45eb4a204fd0b9dd9df9998ed622))
+* update package name and remove circular dependency ([84e02c2](https://github.com/pasquinphilippe/mili-release/commit/84e02c2ac31da77a6ff82d5bc7465471fb234480))
+
+
+### Features
+
+* add CLI implementation ([d33e725](https://github.com/pasquinphilippe/mili-release/commit/d33e725c0bb420ec6a611d235d1b85d7aa4681d5))
+
 ## [1.0.1](https://github.com/pasquinphilippe/mili-release/compare/v1.0.0...v1.0.1) (2025-01-22)
 
 
