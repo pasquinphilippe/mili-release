@@ -1,4 +1,7 @@
 name: Release
+# Workflow for automated semantic versioning and npm package publishing
+# Triggers on push to main and pull requests
+# Runs tests, lints commits, and publishes new versions to npm
 
 on:
   push:
