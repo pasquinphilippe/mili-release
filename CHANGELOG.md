@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/pasquinphilippe/mili-release/compare/v1.3.0...v1.3.1) (2025-01-22)
+
+
+### Bug Fixes
+
+* improve GitHub repository creation process ([af49834](https://github.com/pasquinphilippe/mili-release/commit/af49834a0e27f9b0c755c36a9e040c0fbd57a724))
+
 # [1.3.0](https://github.com/pasquinphilippe/mili-release/compare/v1.2.1...v1.3.0) (2025-01-22)
 
 
