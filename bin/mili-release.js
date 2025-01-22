@@ -76,6 +76,84 @@ async function setupThemes(storeUrl, themeToken, clientName) {
   }
 }
 
+async function setupGitHub(projectName, shopifyToken) {
+  console.log('\nSetting up GitHub integration...\n');
+
+  const { githubSetup } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'githubSetup',
+      message: 'How would you like to set up GitHub?',
+      choices: [
+        { name: 'Create a new repository', value: 'create' },
+        { name: 'Connect to an existing repository', value: 'connect' },
+        { name: 'Skip GitHub setup', value: 'skip' }
+      ]
+    }
+  ]);
+
+  if (githubSetup === 'skip') {
+    console.log('Skipping GitHub setup...');
+    return;
+  }
+
+  // Check if GitHub CLI is installed and authenticated
+  try {
+    execSync('gh auth status', { stdio: 'ignore' });
+  } catch (error) {
+    console.log('\n⚠️  GitHub CLI not installed or not authenticated');
+    console.log('Please install the GitHub CLI and run gh auth login');
+    return;
+  }
+
+  if (githubSetup === 'create') {
+    try {
+      // Create new repository with project name
+      const repoName = projectName.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+
+      // Ask for confirmation of repository name
+      const { confirmRepoName } = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'confirmRepoName',
+          message: `Repository will be created as "${repoName}". Press Enter to confirm or type a different name:`,
+          default: repoName
+        }
+      ]);
+
+      console.log(`\nCreating repository ${confirmRepoName}...`);
+      execSync(`gh repo create "${confirmRepoName}" --private -y`, { stdio: 'inherit' });
+
+      const username = getGitHubUsername();
+      execSync(`git remote add origin https://github.com/${username}/${confirmRepoName}.git`);
+
+      // Set up secrets
+      await setGitHubSecrets(`${username}/${confirmRepoName}`, {
+        SHOPIFY_TOKEN: shopifyToken,
+        NPM_TOKEN: await getNpmToken()
+      });
+
+      // Set up branch protection
+      await setupBranchProtection(`${username}/${confirmRepoName}`);
+
+    } catch (error) {
+      console.error(chalk.yellow('\nWarning: Error creating GitHub repository. You may need to create it manually.'));
+      console.error(chalk.red(error.message));
+      return;
+    }
+  } else {
+    // ... existing code for connecting to existing repository ...
+  }
+
+  // Push initial commit
+  try {
+    execSync('git push -u origin main', { stdio: 'inherit' });
+  } catch (error) {
+    console.error(chalk.yellow('\nWarning: Error pushing to GitHub. You may need to push manually.'));
+    console.error(chalk.red(error.message));
+  }
+}
+
 async function main() {
   console.log(chalk.blue('Welcome to Mili Release - Shopify Theme Automation\n'));
 
@@ -183,6 +261,9 @@ async function main() {
       console.error(chalk.yellow('\nWarning: Failed to create initial commit. You may need to commit manually.'));
       console.error(error.message);
     }
+
+    // Set up GitHub
+    await setupGitHub(answers.projectName, answers.themeToken);
 
     console.log(chalk.green('\nSetup completed successfully! 🎉\n'));
     console.log(chalk.blue('Next steps:'));
