@@ -5,6 +5,7 @@
   "private": false,
   "main": "bin/mili-release.js",
   "bin": {
+    "mili-release": "./bin/mili-release.js",
     "mili-theme": "./bin/mili-release.js"
   },
   "files": [
