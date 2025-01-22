@@ -10,10 +10,9 @@
 - [Prerequisites](#-prerequisites)
 - [Installation](#-installation)
 - [Usage](#-usage)
-- [Configuration](#-configuration)
-- [Workflow](#-workflow)
-- [Commands](#-commands)
+- [Documentation](#-documentation)
 - [Contributing](#-contributing)
+- [License](#-license)
 
 ## ✨ Features
 - 🎯 One-command theme setup with best practices
@@ -49,79 +48,28 @@ mili-theme
 mili-release
 ```
 
-## ⚙️ Configuration
-The CLI will guide you through setting up:
-- 📝 Project/Client name
-- 🏪 Shopify store URL
-- 🔑 Theme access token
-- 📊 GitHub repository settings
+## 📚 Documentation
+Detailed documentation is available in the following files:
 
-### 🔐 Stored Configurations
-```bash
-# List stored configurations
-mili-theme --list-stores
+- [Configuration Guide](docs/CONFIGURATION.md) - Detailed configuration options and settings
+- [Project Structure](docs/PROJECT_STRUCTURE.md) - Codebase organization and architecture
+- [Contributing Guide](CONTRIBUTING.md) - Guidelines for contributing to the project
+- [Changelog](CHANGELOG.md) - Version history and changes
 
-# Remove stored configuration
-mili-theme --remove-store <store-name>
-
-# Use stored configuration
-mili-theme --use-stored
-```
-
-## 🔄 Workflow
-1. **Initial Setup**
-   ```bash
-   mili-theme
-   ```
-   - Creates theme structure
-   - Sets up GitHub repository
-   - Configures GitHub Actions
-   - Initializes semantic release
-
-2. **Development**
-   ```bash
-   npm run theme:dev    # Start development server
-   npm run theme:pull   # Pull theme changes
-   ```
-
-3. **Deployment**
-   - Commits trigger automatic:
-     - Version bumping
-     - Changelog generation
-     - GitHub release creation
-     - Theme deployment
-
-## 💻 Commands
-| Command | Description |
-|---------|-------------|
-| `mili-theme` | Initialize new theme project |
-| `--use-stored` | Use stored configuration |
-| `--list-stores` | List stored configurations |
-| `--remove-store` | Remove stored configuration |
+### Quick Links
+- [CLI Options](docs/CONFIGURATION.md#-cli-options)
+- [Environment Variables](docs/CONFIGURATION.md#-environment-variables)
+- [Troubleshooting](docs/CONFIGURATION.md#-troubleshooting)
+- [Project Structure](docs/PROJECT_STRUCTURE.md#-root-directory-structure)
+- [Development Workflow](CONTRIBUTING.md#-development-workflow)
 
 ## 🤝 Contributing
-1. Fork the repository
-2. Create your feature branch
-   ```bash
-   git checkout -b feature/amazing-feature
-   ```
-3. Commit your changes using [Conventional Commits](https://www.conventionalcommits.org/)
-   ```bash
-   git commit -m "feat: add amazing feature"
-   ```
-4. Push and create a Pull Request
-
-## 📝 Commit Types
-| Type | Description | Example | Version Impact |
-|------|-------------|---------|----------------|
-| `feat` | New features | `feat: add new configuration option` | Minor bump |
-| `fix` | Bug fixes | `fix: resolve token validation issue` | Patch bump |
-| `docs` | Documentation | `docs: update installation guide` | No bump |
-| `chore` | Maintenance | `chore: update dependencies` | Patch bump |
-| `refactor` | Code refactoring | `refactor: improve error handling` | Patch bump |
-| `test` | Testing | `test: add unit tests for config` | No bump |
-
-> **Note**: Commit messages must use sentence-case (first letter of subject capitalized) to pass validation.
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on:
+- Development workflow
+- Commit guidelines
+- Pull request process
+- Code style
+- Testing requirements
 
 ## 📄 License
 MIT © [Milistack](https://github.com/milistack)
