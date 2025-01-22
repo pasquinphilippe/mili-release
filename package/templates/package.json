@@ -1,0 +1,31 @@
+{
+  "name": "shopify-theme",
+  "version": "0.0.0-development",
+  "private": true,
+  "description": "Shopify theme with automated semantic versioning and deployment",
+  "scripts": {
+    "theme:pull": "shopify theme pull",
+    "theme:push": "shopify theme push",
+    "prepare": "husky install",
+    "semantic-release": "semantic-release"
+  },
+  "dependencies": {
+    "@shopify/cli": "^3.59.0"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^18.4.3",
+    "@commitlint/config-conventional": "^18.4.3",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^11.1.0",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^9.2.5",
+    "@semantic-release/release-notes-generator": "^12.1.0",
+    "husky": "^8.0.3",
+    "read-package-up": "^11.0.0",
+    "rimraf": "^5.0.5",
+    "semantic-release": "^23.0.0"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}

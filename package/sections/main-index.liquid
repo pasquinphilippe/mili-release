@@ -1,0 +1,26 @@
+<div class="main-index">
+  <h1>Welcome to our store</h1>
+  {% if section.settings.show_message %}
+    <p>{{ section.settings.welcome_message }}</p>
+  {% endif %}
+</div>
+
+{% schema %}
+{
+  "name": "Homepage",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_message",
+      "label": "Show welcome message",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "welcome_message",
+      "label": "Welcome message",
+      "default": "Welcome to our store!"
+    }
+  ]
+}
+{% endschema %}
