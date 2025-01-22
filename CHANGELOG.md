@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/pasquinphilippe/mili-release/compare/v1.1.0...v1.1.1) (2025-01-22)
+
+
+### Bug Fixes
+
+* improve CLI with repository options and error handling ([511af61](https://github.com/pasquinphilippe/mili-release/commit/511af6144212e77b849669d9113bfca2cf030824))
+
 # [1.1.0](https://github.com/pasquinphilippe/mili-release/compare/v1.0.1...v1.1.0) (2025-01-22)
 
 
