@@ -13,41 +13,23 @@
     "templates"
   ],
   "scripts": {
-    "test": "echo \"No tests yet\"",
-    "prepare": "husky install"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/pasquinphilippe/mili-release.git"
-  },
-  "keywords": [
-    "shopify",
-    "theme",
-    "semantic-release",
-    "cli"
-  ],
-  "author": "Philippe Pasquin",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/pasquinphilippe/mili-release/issues"
-  },
-  "homepage": "https://github.com/pasquinphilippe/mili-release#readme",
-  "dependencies": {
-    "chalk": "^4.1.2",
-    "inquirer": "^8.2.6"
+    "theme:dev": "shopify theme dev --store=sandbox-semantic-release.myshopify.com",
+    "theme:pull": "shopify theme pull --store=sandbox-semantic-release.myshopify.com",
+    "theme:push:staging": "shopify theme push --store=sandbox-semantic-release.myshopify.com -t \"[Staging] - douda\"",
+    "theme:push:production": "shopify theme push --store=sandbox-semantic-release.myshopify.com -t \"[Production] - douda\"",
+    "test": "echo \"No tests configured\"",
+    "prepare": "husky install",
+    "semantic-release": "semantic-release"
   },
   "devDependencies": {
-    "@commitlint/cli": "^18.4.4",
-    "@commitlint/config-conventional": "^18.4.4",
+    "@commitlint/cli": "^18.4.0",
+    "@commitlint/config-conventional": "^18.4.0",
+    "husky": "^8.0.0",
     "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^11.1.0",
     "@semantic-release/git": "^10.0.1",
-    "husky": "^8.0.3",
+    "@semantic-release/github": "^9.2.5",
+    "@semantic-release/release-notes-generator": "^12.1.0",
     "semantic-release": "^23.0.0"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "engines": {
-    "node": ">=14"
   }
 }

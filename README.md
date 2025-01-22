@@ -1,209 +1,152 @@
-# Mili Theme CLI
+<p align="center">
+  <img src="https://storage.googleapis.com/msgsndr/13wKtghjM0UiJUVzcCwH/media/678ec74139a4c6edc3269a76.png" alt="douda Logo" width="200"/>
+</p>
 
-A CLI tool for setting up Shopify theme development with semantic versioning and automated deployments.
+<h1 align="center">douda Shopify Theme</h1>
 
-## Features
+<p align="center">
+  <a href="#-features">Features</a> •
+  <a href="#-getting-started">Getting Started</a> •
+  <a href="#-development">Development</a> •
+  <a href="#-deployment">Deployment</a> •
+  <a href="#-contributing">Contributing</a>
+</p>
 
-- 🚀 Quick theme setup with best practices
-- 📦 Automated semantic versioning
-- 🔄 GitHub Actions integration for CI/CD
-- 🛡️ Branch protection and deployment safety checks
+## ✨ Features
+
+- 🚀 Automated semantic versioning
+- 🔄 CI/CD with GitHub Actions
+- 📦 Shopify theme development tools
+- 🛠️ Modern development workflow
 - 📝 Automated changelog generation
-- 🔑 Secure secrets management
-- 🎨 Standard Shopify theme structure
+- 🔐 Secure theme deployment
 
-## Prerequisites
+## 🎯 Theme Structure
 
-1. Install the Shopify CLI:
-   ```bash
-   npm install -g @shopify/cli @shopify/theme
-   ```
+```
+📁 Theme Root
+├── 📁 assets/           # Theme assets (CSS, JS, images)
+├── 📁 config/          # Theme settings and schema
+├── 📁 layout/          # Theme layout templates
+├── 📁 locales/         # Translation files
+├── 📁 sections/        # Theme sections
+├── 📁 snippets/        # Reusable template snippets
+└── 📁 templates/       # Page templates
+```
 
-2. Set up your Shopify development store:
-   - Log in to your [Shopify Partner account](https://partners.shopify.com)
-   - Create a development store or select an existing one
-   - In your store admin, go to Apps > Develop apps
-   - Create an app and generate theme access token
+## 🚀 Getting Started
 
-3. Install Mili Theme CLI:
-   ```bash
-   npm install -g @milistack/theme-cli
-   ```
+### Prerequisites
 
-## Getting Started
+| Tool | Version | Description |
+|------|---------|-------------|
+| Node.js | >= 16 | JavaScript runtime |
+| Shopify CLI | Latest | Shopify development tools |
+| GitHub CLI | Latest | GitHub integration |
 
-### Option 1: Start with an Existing Theme
+### Quick Start 🏃‍♂️
 
-1. Create your project directory:
-   ```bash
-   mkdir my-store-theme
-   cd my-store-theme
-   ```
-
-2. Pull your existing theme:
-   ```bash
-   # List available themes
-   shopify theme list --store=your-store.myshopify.com
-
-   # Pull the theme you want to work with (replace THEME_ID)
-   shopify theme pull --store=your-store.myshopify.com --theme=THEME_ID
-   ```
-
-3. Initialize version control:
-   ```bash
-   mili-theme
-   ```
-
-4. Follow the prompts to set up:
-   - Project name
-   - Shopify store URL
-   - Theme token (from your Shopify app)
-   - GitHub integration
-
-### Option 2: Create a New Theme
-
-1. Create your project directory:
-   ```bash
-   mkdir my-new-theme
-   cd my-new-theme
-   ```
-
-2. Initialize the theme:
-   ```bash
-   mili-theme
-   ```
-
-3. Follow the prompts to set up:
-   - Project name
-   - Shopify store URL
-   - Theme token (from your Shopify app)
-   - GitHub integration
-
-### Option 3: Clone an Existing Theme Repository
-
-1. Clone your theme repository:
-   ```bash
-   git clone https://github.com/your-username/your-theme.git
-   cd your-theme
-   ```
-
-2. Install dependencies:
+1. **Install Dependencies**
    ```bash
    npm install
    ```
 
-3. Set up your Shopify connection:
+2. **Start Development**
    ```bash
-   shopify theme dev --store=your-store.myshopify.com
+   npm run theme:dev
    ```
 
-## Development Commands
+## 💻 Development
 
-Common commands you'll use during development:
+### Available Scripts
 
-```bash
-# Start development server
-shopify theme dev --store=your-store.myshopify.com
+| Command | Description |
+|---------|-------------|
+| `npm run theme:dev` | Start development server |
+| `npm run theme:pull` | Pull theme from Shopify |
+| `npm run theme:push:staging` | Push to staging theme |
+| `npm run theme:push:production` | Push to production theme |
+| `npm run semantic-release` | Run semantic release |
 
-# Push changes to Shopify
-shopify theme push --store=your-store.myshopify.com
+## 📦 Semantic Release
 
-# Pull latest changes from Shopify
-shopify theme pull --store=your-store.myshopify.com
+This project uses semantic-release to automate version management. Version numbers follow [Semantic Versioning](https://semver.org/).
 
-# Create a new release (automatic via CI/CD)
-git push origin main
-```
+### 📝 Commit Message Format
 
-## What It Sets Up
+| Type | Description | Version Impact |
+|------|-------------|----------------|
+| `feat` | New feature | Minor bump |
+| `fix` | Bug fix | Patch bump |
+| `docs` | Documentation | No bump |
+| `style` | Code style | No bump |
+| `refactor` | Code refactoring | Patch bump |
+| `perf` | Performance | Patch bump |
+| `test` | Testing | No bump |
+| `chore` | Maintenance | Patch bump |
+| `revert` | Revert changes | Patch bump |
 
-The CLI will create a complete Shopify theme development environment:
+### 🌳 Branch Strategy
 
-### Directory Structure
-```
-my-theme/
-├── assets/
-├── config/
-├── layout/
-├── locales/
-├── sections/
-├── snippets/
-└── templates/
-```
+| Branch | Purpose | Protection |
+|--------|---------|------------|
+| `main` | Production | 🔒 Protected |
+| `staging` | Pre-production | 🔒 Protected |
+| `feat/*` | Feature development | 🔓 Open |
+| `fix/*` | Bug fixes | 🔓 Open |
 
-### Configuration Files
-- `package.json` with scripts and dependencies
-- GitHub Actions workflow for CI/CD
-- Semantic release configuration
-- Commitlint for conventional commits
-- Branch protection rules (if using GitHub)
+## 🚀 Deployment Workflow
 
-### Development Workflow
-
-1. Make changes to your theme files
-2. Stage your changes:
+1. 🔨 Create feature branch
    ```bash
-   git add .
+   git checkout -b feat/your-feature-name
    ```
 
-3. Commit using conventional commits:
+2. 💾 Commit changes using conventional commits
    ```bash
-   git commit -m "feat: add new product template"
+   git commit -m "feat: Add new feature"
    ```
 
-   Commit types:
-   - `feat`: New feature
-   - `fix`: Bug fix
-   - `docs`: Documentation changes
-   - `style`: Theme style changes
-   - `refactor`: Code refactoring
-   - `test`: Adding tests
-   - `chore`: Maintenance
+3. 🔄 Create PR to `staging`
+4. 👀 Review preview theme
+5. 🎯 Merge to `staging`
+6. 🚀 Create PR from `staging` to `main`
 
-4. Push your changes:
-   ```bash
-   git push
-   ```
+## 🔄 CI/CD Pipeline
 
-The GitHub Actions workflow will automatically:
-- Run tests (if configured)
-- Create a new release
-- Generate a changelog
-- Deploy to your Shopify store (if configured)
+| Stage | Trigger | Actions |
+|-------|---------|---------|
+| Validate | PR, Push | 🔍 Lint commits<br>✅ Run tests |
+| Preview | PR | 🎨 Create preview theme |
+| Release | Merge to main | 📦 Create release<br>📝 Generate changelog<br>🚀 Deploy theme |
 
-## Requirements
+## ⚙️ Theme Configuration
 
-- Node.js >= 20
-- Git
-- GitHub account (optional, for CI/CD)
-- Shopify CLI theme token
+- 🏪 Store URL: `sandbox-semantic-release.myshopify.com`
+- 🔐 Environment: Production & Staging
+- 🌐 Theme Access: Staff accounts
 
-## Troubleshooting
+## 📚 Resources
 
-### Common Issues
+- [Shopify Theme Development](https://shopify.dev/themes)
+- [Semantic Release](https://semantic-release.gitbook.io/)
+- [Conventional Commits](https://www.conventionalcommits.org/)
+- [GitHub Actions](https://docs.github.com/actions)
 
-1. **GitHub Authentication**
-   - Ensure you have the GitHub CLI installed
-   - Run `gh auth login` if prompted
+## 🤝 Contributing
 
-2. **Shopify CLI Token**
-   - Generate a new token from your Shopify Partner dashboard
-   - Ensure the token has the necessary permissions
+1. Create feature branch
+2. Commit changes
+3. Create pull request
+4. Get review & approval
+5. Merge & deploy
 
-3. **Branch Protection**
-   - If you can't push to protected branches, create a pull request instead
-   - Ensure your commits follow the conventional commit format
+## 📄 License
 
-### Getting Help
+This project is private and confidential.
 
-If you encounter any issues:
-1. Check the [GitHub Issues](https://github.com/pasquinphilippe/mili-release/issues)
-2. Create a new issue with:
-   - Steps to reproduce
-   - Expected behavior
-   - Actual behavior
-   - Error messages
+---
 
-## License
-
-MIT
+<p align="center">
+  Made with ❤️ by <a href="https://github.com/pasquinphilippe">Philippe Pasquin</a>
+</p>
