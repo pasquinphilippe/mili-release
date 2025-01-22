@@ -1,0 +1,135 @@
+name: Theme Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Install Shopify CLI
+        run: npm install -g @shopify/cli @shopify/theme
+
+      - name: Get current date
+        id: date
+        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
+      - name: Get current time
+        id: time
+        run: echo "time=$(date +'%H:%M:%S')" >> $GITHUB_OUTPUT
+
+      - name: Manage Preview Theme
+        if: github.event.action != 'closed'
+        env:
+          SHOPIFY_CLI_THEME_TOKEN: ${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}
+          SHOPIFY_FLAG_STORE: ${{ secrets.SHOPIFY_STORE_URL }}
+        run: |
+          # Get PR type from branch name
+          PR_TYPE="UPDATE"
+          if [[ "${{ github.head_ref }}" == *"feat"* ]]; then
+            PR_TYPE="FEATURE"
+          elif [[ "${{ github.head_ref }}" == *"fix"* ]]; then
+            PR_TYPE="FIX"
+          elif [[ "${{ github.head_ref }}" == *"chore"* ]]; then
+            PR_TYPE="CHORE"
+          elif [[ "${{ github.head_ref }}" == *"doc"* ]]; then
+            PR_TYPE="DOC"
+          elif [[ "${{ github.head_ref }}" == *"refactor"* ]]; then
+            PR_TYPE="REFACTOR"
+          fi
+
+          THEME_NAME="[${PR_TYPE}]-PR${{ github.event.number }}-${{ github.head_ref }}"
+          echo "THEME_NAME=$THEME_NAME" >> $GITHUB_ENV
+
+          # First try to list themes to get existing theme ID
+          EXISTING_THEME=$(shopify theme list --json | jq -r ".[] | select(.name==\"$THEME_NAME\") | .id")
+
+          if [ -n "$EXISTING_THEME" ]; then
+            # If theme exists, push to it
+            echo "Found existing theme with ID: $EXISTING_THEME"
+            THEME_ID=$EXISTING_THEME
+            shopify theme push -t $THEME_ID
+          else
+            # Create new theme
+            echo "Creating new theme: $THEME_NAME"
+            PUSH_OUTPUT=$(shopify theme push --unpublished --json -t "$THEME_NAME")
+
+            # Extract theme ID and URLs from JSON output
+            THEME_ID=$(echo "$PUSH_OUTPUT" | jq -r '.theme.id')
+            PREVIEW_URL=$(echo "$PUSH_OUTPUT" | jq -r '.theme.preview_url')
+            EDITOR_URL=$(echo "$PUSH_OUTPUT" | jq -r '.theme.editor_url')
+
+            if [ -n "$THEME_ID" ]; then
+              echo "New theme created with ID: $THEME_ID"
+            else
+              echo "Failed to create theme"
+              echo "Push output: $PUSH_OUTPUT"
+              exit 1
+            fi
+          fi
+
+          # Set environment variables for later steps
+          echo "THEME_ID=$THEME_ID" >> $GITHUB_ENV
+          echo "PREVIEW_URL=$PREVIEW_URL" >> $GITHUB_ENV
+          echo "EDITOR_URL=$EDITOR_URL" >> $GITHUB_ENV
+
+      - name: Add PR Comment
+        if: github.event.action != 'closed'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const body = `## 🎨 Shopify Theme Preview
+
+            | Name | Status | Preview | Editor | Date | Time |
+            | :--- | :----- | :------ | :------ | :------ | :----- |
+            | ${process.env.THEME_NAME} | ✅ Ready | [Preview](${process.env.PREVIEW_URL}) | [Editor](${process.env.EDITOR_URL}) | ${process.env.date} | ${process.env.time} |
+
+            ### 📝 Notes
+            - Preview theme has been created/updated
+            - Changes will be automatically synced with future commits
+            - Theme will be deleted when PR is closed
+
+            *Created by MILI Theme Preview*`;
+
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
+
+      - name: Cleanup Theme
+        if: github.event.action == 'closed'
+        env:
+          SHOPIFY_CLI_THEME_TOKEN: ${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}
+          SHOPIFY_FLAG_STORE: ${{ secrets.SHOPIFY_STORE_URL }}
+        run: |
+          # Get PR type from branch name
+          PR_TYPE="UPDATE"
+          if [[ "${{ github.head_ref }}" == *"feat"* ]]; then
+            PR_TYPE="FEATURE"
+          elif [[ "${{ github.head_ref }}" == *"fix"* ]]; then
+            PR_TYPE="FIX"
+          elif [[ "${{ github.head_ref }}" == *"chore"* ]]; then
+            PR_TYPE="CHORE"
+          elif [[ "${{ github.head_ref }}" == *"doc"* ]]; then
+            PR_TYPE="DOC"
+          elif [[ "${{ github.head_ref }}" == *"refactor"* ]]; then
+            PR_TYPE="REFACTOR"
+          fi
+
+          THEME_NAME="[${PR_TYPE}]-PR${{ github.event.number }}-${{ github.head_ref }}"
+
+          # Find theme ID by name
+          THEME_ID=$(shopify theme list --json | jq -r ".[] | select(.name==\"$THEME_NAME\") | .id")
+
+          if [ -n "$THEME_ID" ]; then
+            echo "Deleting theme with ID: $THEME_ID"
+            shopify theme delete -t $THEME_ID --force
+          else
+            echo "No preview theme found with name: $THEME_NAME"
+          fi
