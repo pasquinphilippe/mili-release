@@ -1,3 +1,16 @@
+# [1.2.0](https://github.com/pasquinphilippe/mili-release/compare/v1.1.1...v1.2.0) (2025-01-22)
+
+
+### Bug Fixes
+
+* add both binary names for CLI ([bddba30](https://github.com/pasquinphilippe/mili-release/commit/bddba3052fb8f9680a0021f85f49e2940003987e))
+* correct template literals and add templates directory check ([41bb036](https://github.com/pasquinphilippe/mili-release/commit/41bb036e3b93452fbea43fe48a720d60b3a95b73))
+
+
+### Features
+
+* implement theme management workflow ([a1e3112](https://github.com/pasquinphilippe/mili-release/commit/a1e311294192b0a14dbf72e56a2f8e2e9d8c0a6a))
+
 ## [1.1.1](https://github.com/pasquinphilippe/mili-release/compare/v1.1.0...v1.1.1) (2025-01-22)
 
 
