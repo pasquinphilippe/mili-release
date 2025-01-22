@@ -114,14 +114,14 @@ mili-theme --use-stored
 ## 📝 Commit Types
 | Type | Description | Example | Version Impact |
 |------|-------------|---------|----------------|
-| `Feat` | New features | `Feat: add new configuration option` | Minor bump |
-| `Fix` | Bug fixes | `Fix: resolve token validation issue` | Patch bump |
-| `Docs` | Documentation | `Docs: update installation guide` | No bump |
-| `Chore` | Maintenance | `Chore: update dependencies` | Patch bump |
-| `Refactor` | Code refactoring | `Refactor: improve error handling` | Patch bump |
-| `Test` | Testing | `Test: add unit tests for config` | No bump |
+| `feat` | New features | `feat: add new configuration option` | Minor bump |
+| `fix` | Bug fixes | `fix: resolve token validation issue` | Patch bump |
+| `docs` | Documentation | `docs: update installation guide` | No bump |
+| `chore` | Maintenance | `chore: update dependencies` | Patch bump |
+| `refactor` | Code refactoring | `refactor: improve error handling` | Patch bump |
+| `test` | Testing | `test: add unit tests for config` | No bump |
 
-> **Note**: Commit messages must use sentence-case (first letter capitalized) to pass validation.
+> **Note**: Commit messages must use sentence-case (first letter of subject capitalized) to pass validation.
 
 ## 📄 License
 MIT © [Milistack](https://github.com/milistack)
