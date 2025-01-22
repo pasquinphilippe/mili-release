@@ -24,12 +24,12 @@ async function setupThemes(storeUrl, themeToken) {
 
     if (!productionTheme) {
       console.log(chalk.green('Creating Production theme...'));
-      execSync('shopify theme push --unpublished --json -t "[Production] - ${storeUrl}"', { stdio: 'inherit' });
+      execSync(`shopify theme push --unpublished --json -t "[Production] - ${storeUrl}"`, { stdio: 'inherit' });
     }
 
     if (!stagingTheme) {
       console.log(chalk.green('Creating Staging theme...'));
-      execSync('shopify theme push --unpublished --json -t "[Staging] - ${storeUrl}"', { stdio: 'inherit' });
+      execSync(`shopify theme push --unpublished --json -t "[Staging] - ${storeUrl}"`, { stdio: 'inherit' });
     }
   } catch (error) {
     console.error(chalk.red('Error setting up themes:'), error.message);
@@ -39,6 +39,13 @@ async function setupThemes(storeUrl, themeToken) {
 
 async function main() {
   console.log(chalk.blue('Welcome to Mili Release - Shopify Theme Automation\n'));
+
+  // Check if templates directory exists
+  const templatesDir = path.join(__dirname, '../templates');
+  if (!fs.existsSync(templatesDir)) {
+    console.error(chalk.red('Error: Templates directory not found. Please ensure the package is installed correctly.'));
+    process.exit(1);
+  }
 
   try {
     const answers = await inquirer.prompt([
