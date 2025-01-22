@@ -6,12 +6,18 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-async function setupThemes(storeUrl, themeToken) {
+async function setupThemes(storeUrl, themeToken, clientName) {
   console.log(chalk.blue('\nSetting up Shopify themes...\n'));
 
   // Set environment variables for Shopify CLI
   process.env.SHOPIFY_CLI_THEME_TOKEN = themeToken;
   process.env.SHOPIFY_FLAG_STORE = storeUrl;
+
+  // Helper function to create theme name
+  function createThemeName(type, name) {
+    const fullName = `[${type}] - ${name}`;
+    return fullName.length > 50 ? fullName.substring(0, 47) + '...' : fullName;
+  }
 
   try {
     // List existing themes
@@ -23,13 +29,15 @@ async function setupThemes(storeUrl, themeToken) {
     const stagingTheme = themes.find(t => t.name.startsWith('[Staging]'));
 
     if (!productionTheme) {
-      console.log(chalk.green('Creating Production theme...'));
-      execSync(`shopify theme push --unpublished --json -t "[Production] - ${storeUrl}"`, { stdio: 'inherit' });
+      const prodThemeName = createThemeName('Production', clientName);
+      console.log(chalk.green(`Creating Production theme: ${prodThemeName}...`));
+      execSync(`shopify theme push --unpublished --json -t "${prodThemeName}"`, { stdio: 'inherit' });
     }
 
     if (!stagingTheme) {
-      console.log(chalk.green('Creating Staging theme...'));
-      execSync(`shopify theme push --unpublished --json -t "[Staging] - ${storeUrl}"`, { stdio: 'inherit' });
+      const stagingThemeName = createThemeName('Staging', clientName);
+      console.log(chalk.green(`Creating Staging theme: ${stagingThemeName}...`));
+      execSync(`shopify theme push --unpublished --json -t "${stagingThemeName}"`, { stdio: 'inherit' });
     }
   } catch (error) {
     console.error(chalk.red('Error setting up themes:'), error.message);
@@ -103,8 +111,8 @@ async function main() {
       scripts: {
         "theme:dev": `shopify theme dev --store=${answers.storeUrl}`,
         "theme:pull": `shopify theme pull --store=${answers.storeUrl}`,
-        "theme:push:staging": `shopify theme push --store=${answers.storeUrl} -t "[Staging] - ${answers.storeUrl}"`,
-        "theme:push:production": `shopify theme push --store=${answers.storeUrl} -t "[Production] - ${answers.storeUrl}"`,
+        "theme:push:staging": `shopify theme push --store=${answers.storeUrl} -t "[Staging] - ${answers.projectName}"`,
+        "theme:push:production": `shopify theme push --store=${answers.storeUrl} -t "[Production] - ${answers.projectName}"`,
         "test": "echo \"No tests configured\""
       },
       devDependencies: {
@@ -117,7 +125,7 @@ async function main() {
     fs.writeFileSync('package.json', JSON.stringify(packageJson, null, 2));
 
     // Set up themes
-    await setupThemes(answers.storeUrl, answers.themeToken);
+    await setupThemes(answers.storeUrl, answers.themeToken, answers.projectName);
 
     // Create GitHub Actions workflow
     console.log(chalk.green('\nSetting up GitHub Actions workflow...\n'));
