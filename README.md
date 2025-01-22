@@ -19,10 +19,11 @@ A CLI tool for setting up Shopify theme development with semantic versioning and
    npm install -g @shopify/cli @shopify/theme
    ```
 
-2. Authenticate with Shopify:
-   ```bash
-   shopify auth login
-   ```
+2. Set up your Shopify development store:
+   - Log in to your [Shopify Partner account](https://partners.shopify.com)
+   - Create a development store or select an existing one
+   - In your store admin, go to Apps > Develop apps
+   - Create an app and generate theme access token
 
 3. Install Mili Theme CLI:
    ```bash
@@ -42,10 +43,10 @@ A CLI tool for setting up Shopify theme development with semantic versioning and
 2. Pull your existing theme:
    ```bash
    # List available themes
-   shopify theme list
+   shopify theme list --store=your-store.myshopify.com
 
    # Pull the theme you want to work with (replace THEME_ID)
-   shopify theme pull --theme THEME_ID
+   shopify theme pull --store=your-store.myshopify.com --theme=THEME_ID
    ```
 
 3. Initialize version control:
@@ -56,7 +57,7 @@ A CLI tool for setting up Shopify theme development with semantic versioning and
 4. Follow the prompts to set up:
    - Project name
    - Shopify store URL
-   - Theme token
+   - Theme token (from your Shopify app)
    - GitHub integration
 
 ### Option 2: Create a New Theme
@@ -75,7 +76,7 @@ A CLI tool for setting up Shopify theme development with semantic versioning and
 3. Follow the prompts to set up:
    - Project name
    - Shopify store URL
-   - Theme token
+   - Theme token (from your Shopify app)
    - GitHub integration
 
 ### Option 3: Clone an Existing Theme Repository
@@ -93,7 +94,7 @@ A CLI tool for setting up Shopify theme development with semantic versioning and
 
 3. Set up your Shopify connection:
    ```bash
-   shopify theme dev
+   shopify theme dev --store=your-store.myshopify.com
    ```
 
 ## Development Commands
@@ -102,13 +103,13 @@ Common commands you'll use during development:
 
 ```bash
 # Start development server
-npm run dev
+shopify theme dev --store=your-store.myshopify.com
 
 # Push changes to Shopify
-npm run push
+shopify theme push --store=your-store.myshopify.com
 
 # Pull latest changes from Shopify
-npm run pull
+shopify theme pull --store=your-store.myshopify.com
 
 # Create a new release (automatic via CI/CD)
 git push origin main
