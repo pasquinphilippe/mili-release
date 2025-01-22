@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/pasquinphilippe/mili-release/compare/v1.2.0...v1.2.1) (2025-01-22)
+
+
+### Bug Fixes
+
+* update theme naming convention to use client name ([70abc9b](https://github.com/pasquinphilippe/mili-release/commit/70abc9b3f427080d427cec885eb516025067ce6a))
+
 # [1.2.0](https://github.com/pasquinphilippe/mili-release/compare/v1.1.1...v1.2.0) (2025-01-22)
 
 
