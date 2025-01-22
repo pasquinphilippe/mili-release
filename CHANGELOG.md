@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/pasquinphilippe/mili-release/compare/v1.2.1...v1.3.0) (2025-01-22)
+
+
+### Features
+
+* add interactive theme selection ([9166c6a](https://github.com/pasquinphilippe/mili-release/commit/9166c6ac889872417453bef457fd57ece9f30e96))
+
 ## [1.2.1](https://github.com/pasquinphilippe/mili-release/compare/v1.2.0...v1.2.1) (2025-01-22)
 
 

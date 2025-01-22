@@ -1,6 +1,6 @@
 {
   "name": "@milistack/theme-cli",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "CLI tool for setting up Shopify theme semantic releases",
   "private": false,
   "main": "bin/mili-release.js",
