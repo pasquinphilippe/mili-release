@@ -1,3 +1,10 @@
+## [1.4.5](https://github.com/pasquinphilippe/mili-release/compare/v1.4.4...v1.4.5) (2025-01-23)
+
+
+### Bug Fixes
+
+* Existing directory ([40306e4](https://github.com/pasquinphilippe/mili-release/commit/40306e43db9f27d4f18080f425524885aa0aa5f8))
+
 ## [1.4.4](https://github.com/pasquinphilippe/mili-release/compare/v1.4.3...v1.4.4) (2025-01-23)
 
 
