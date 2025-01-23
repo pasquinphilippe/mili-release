@@ -1,3 +1,11 @@
+## [1.4.3](https://github.com/pasquinphilippe/mili-release/compare/v1.4.2...v1.4.3) (2025-01-23)
+
+
+### Bug Fixes
+
+* Changed require() to import statements ([847aac0](https://github.com/pasquinphilippe/mili-release/commit/847aac09033585c936ecda27128930e52fbfcbff))
+* Release package ([55fc452](https://github.com/pasquinphilippe/mili-release/commit/55fc4523f6cab7845482cdbe6324bda72a1ad61e))
+
 ## [1.4.2](https://github.com/pasquinphilippe/mili-release/compare/v1.4.1...v1.4.2) (2025-01-23)
 
 
