@@ -1,11 +1,12 @@
 {
-  "name": "@mili-release/cli",
-  "version": "1.0.0",
+  "name": "@milistack/theme-cli",
+  "version": "1.5.0",
   "description": "CLI tool for setting up Shopify theme development with semantic versioning and automated deployments",
-  "private": true,
+  "private": false,
+  "type": "module",
   "main": "bin/mili-release.js",
   "bin": {
-    "mili-release": "./bin/mili-release.js"
+    "mili-theme": "./bin/mili-release.js"
   },
   "files": [
     "bin/",
@@ -13,7 +14,6 @@
   ],
   "scripts": {
     "test": "echo \"No tests yet\"",
-    "prepare": "husky install",
     "commitlint": "commitlint --edit"
   },
   "repository": {
@@ -30,8 +30,8 @@
   "author": "Philippe Pasquin",
   "license": "MIT",
   "dependencies": {
-    "chalk": "^4.1.2",
-    "inquirer": "^8.2.6"
+    "chalk": "^5.3.0",
+    "inquirer": "^9.2.12"
   },
   "devDependencies": {
     "@commitlint/cli": "^18.4.3",
@@ -40,8 +40,5 @@
   },
   "engines": {
     "node": ">=16"
-  },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
   }
 }

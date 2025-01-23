@@ -1,11 +1,16 @@
 #!/usr/bin/env node
 
-const inquirer = require('inquirer');
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
-const chalk = require('chalk');
-const os = require('os');
+import inquirer from 'inquirer';
+import fs from 'fs';
+import path from 'path';
+import { execSync } from 'child_process';
+import chalk from 'chalk';
+import os from 'os';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Helper function to read template files
 function readTemplateFile(filename) {
