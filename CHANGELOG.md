@@ -1,3 +1,11 @@
+## [1.4.2](https://github.com/pasquinphilippe/mili-release/compare/v1.4.1...v1.4.2) (2025-01-23)
+
+
+### Bug Fixes
+
+* Add missing dependencies and configure ES modules ([d7c1749](https://github.com/pasquinphilippe/mili-release/commit/d7c1749beb03b61e84d2ec0cc0db5a71ff7aac88))
+* Update commitlint config to use ES modules ([a8c93a2](https://github.com/pasquinphilippe/mili-release/commit/a8c93a2d7d4fff901f7abdbd05ab9e7f2562d5fc))
+
 ## [1.4.1](https://github.com/pasquinphilippe/mili-release/compare/v1.4.0...v1.4.1) (2025-01-23)
 
 
