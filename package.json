@@ -6,13 +6,15 @@
   "type": "module",
   "main": "bin/mili-release.js",
   "bin": {
-    "mili-release": "./bin/mili-release.js",
     "mili-theme": "./bin/mili-release.js"
   },
   "files": [
     "bin",
     "templates"
   ],
+  "engines": {
+    "node": ">=14.16"
+  },
   "scripts": {
     "theme:dev": "shopify theme dev --store=sandbox-semantic-release.myshopify.com",
     "theme:pull": "shopify theme pull --store=sandbox-semantic-release.myshopify.com",

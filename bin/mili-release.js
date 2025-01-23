@@ -5,12 +5,16 @@ import chalk from 'chalk';
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import os from 'os';
 import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import os from 'os';
 
 // ES Module equivalents for __dirname and __filename
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = dirname(__filename);
+
+// Get the templates directory path
+const getTemplatesDir = () => path.join(dirname(fileURLToPath(import.meta.url)), '../templates');
 
 // Helper function to get config directory path
 function getConfigPath() {
@@ -441,10 +445,14 @@ async function main() {
     return;
   }
 
-  // Check if templates directory exists
-  const templatesDir = path.join(__dirname, '../templates');
-  if (!fs.existsSync(templatesDir)) {
-    console.error(chalk.red('Error: Templates directory not found. Please ensure the package is installed correctly.'));
+  // Check if we're in an existing Shopify theme directory
+  const isExistingTheme = fs.existsSync('config') && fs.existsSync('layout') && fs.existsSync('templates');
+  const templatesDir = getTemplatesDir();
+  const hasTemplates = fs.existsSync(templatesDir);
+
+  // Only require templates directory if we're not in an existing theme directory
+  if (!isExistingTheme && !hasTemplates) {
+    console.error(chalk.red('Error: Not in a Shopify theme directory and no templates found. Please run this command in a Shopify theme directory or ensure the package is installed correctly.'));
     process.exit(1);
   }
 
