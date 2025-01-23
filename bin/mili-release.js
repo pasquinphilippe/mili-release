@@ -424,6 +424,53 @@ async function setGitHubSecrets(repoPath, secrets) {
   }
 }
 
+// Helper function to create or update .gitignore
+function ensureGitignore() {
+  const gitignoreContent = [
+    'node_modules/',
+    '.DS_Store',
+    'config.yml',
+    '.env',
+    '.env.*',
+    '*.log',
+    '.shopifyignore',
+    '.vscode/',
+    '.idea/',
+    'dist/',
+    'build/',
+    'coverage/',
+    '.husky/_/',
+    '.npmrc'
+  ].join('\n');
+
+  const gitignorePath = '.gitignore';
+
+  try {
+    if (fs.existsSync(gitignorePath)) {
+      // Read existing .gitignore
+      const existingContent = fs.readFileSync(gitignorePath, 'utf8');
+      const existingLines = new Set(existingContent.split('\n').map(line => line.trim()));
+
+      // Add new lines that don't exist
+      const newLines = gitignoreContent.split('\n')
+        .filter(line => !existingLines.has(line.trim()));
+
+      if (newLines.length > 0) {
+        // Append new lines to existing .gitignore
+        fs.appendFileSync(gitignorePath, '\n' + newLines.join('\n'));
+        console.log(chalk.green('Updated .gitignore with new entries'));
+      }
+    } else {
+      // Create new .gitignore
+      fs.writeFileSync(gitignorePath, gitignoreContent);
+      console.log(chalk.green('Created new .gitignore file'));
+    }
+  } catch (error) {
+    console.error(chalk.yellow('Warning: Could not update .gitignore file'));
+    console.error(error.message);
+  }
+}
+
 async function main() {
   console.log(chalk.blue('Welcome to Mili Release - Shopify Theme Automation\n'));
 
@@ -455,6 +502,9 @@ async function main() {
     console.error(chalk.red('Error: Not in a Shopify theme directory and no templates found. Please run this command in a Shopify theme directory or ensure the package is installed correctly.'));
     process.exit(1);
   }
+
+  // Ensure .gitignore is set up properly
+  ensureGitignore();
 
   try {
     let answers;
