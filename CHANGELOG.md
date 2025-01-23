@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/pasquinphilippe/mili-release/compare/v1.4.5...v1.5.0) (2025-01-23)
+
+
+### Features
+
+* Add gitignore to mili-theme ([fbfbe26](https://github.com/pasquinphilippe/mili-release/commit/fbfbe264dea98b6139221010719bdff84a64a361))
+
 ## [1.4.5](https://github.com/pasquinphilippe/mili-release/compare/v1.4.4...v1.4.5) (2025-01-23)
 
 
