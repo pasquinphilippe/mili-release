@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/pasquinphilippe/mili-release/compare/v1.5.0...v1.5.1) (2025-01-23)
+
+
+### Bug Fixes
+
+* Add all github workflows to mili-theme action ([383531a](https://github.com/pasquinphilippe/mili-release/commit/383531a1388b02181e65b82fdb9e9840b6e4b66b))
+
 # [1.5.0](https://github.com/pasquinphilippe/mili-release/compare/v1.4.5...v1.5.0) (2025-01-23)
 
 
