@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-const inquirer = require('inquirer');
-const chalk = require('chalk');
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
+import inquirer from 'inquirer';
+import chalk from 'chalk';
+import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
 
 // Helper function to get config directory path
 function getConfigPath() {
