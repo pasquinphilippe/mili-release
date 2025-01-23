@@ -763,7 +763,7 @@ This project is private and confidential.
 ---
 
 <p align="center">
-  Made with ❤️ by <a href="https://github.com/pasquinphilippe">Philippe Pasquin</a>
+  Made with ❤️ by <a href="https://github.com/pasquinphilippe">milistack shopify agency</a>
 </p>`;
 
     fs.writeFileSync('README.md', readmeContent);
