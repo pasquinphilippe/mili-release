@@ -30,7 +30,18 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
-      - run: npx commitlint --from ${{ github.event.pull_request.base.sha || github.event.before }} --to ${{ github.event.pull_request.head.sha || github.sha }} --verbose
+      - name: Get commit range
+        id: commit_range
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "from_commit=${{ github.event.pull_request.base.sha }}" >> $GITHUB_OUTPUT
+            echo "to_commit=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
+          else
+            echo "from_commit=$(git rev-list --max-parents=0 HEAD)" >> $GITHUB_OUTPUT
+            echo "to_commit=${{ github.sha }}" >> $GITHUB_OUTPUT
+          fi
+      - name: Lint commits
+        run: npx commitlint --from ${{ steps.commit_range.outputs.from_commit }} --to ${{ steps.commit_range.outputs.to_commit }} --verbose
 
   release:
     needs: [test, lint]
