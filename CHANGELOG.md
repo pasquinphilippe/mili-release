@@ -1,3 +1,10 @@
+## [1.4.4](https://github.com/pasquinphilippe/mili-release/compare/v1.4.3...v1.4.4) (2025-01-23)
+
+
+### Bug Fixes
+
+* Properly handles file path in ES modules ([b18c061](https://github.com/pasquinphilippe/mili-release/commit/b18c061cc1f2dcfda014f918761e8046a74ccc72))
+
 ## [1.4.3](https://github.com/pasquinphilippe/mili-release/compare/v1.4.2...v1.4.3) (2025-01-23)
 
 
