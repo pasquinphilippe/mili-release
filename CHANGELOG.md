@@ -1,3 +1,13 @@
+## [1.4.1](https://github.com/pasquinphilippe/mili-release/compare/v1.4.0...v1.4.1) (2025-01-23)
+
+
+### Bug Fixes
+
+* Disable Husky hooks during semantic-release ([731be83](https://github.com/pasquinphilippe/mili-release/commit/731be83c94c6068db2094943aaf6f63d7a56f275))
+* Ensure proper git history for commitlint ([03bd0e7](https://github.com/pasquinphilippe/mili-release/commit/03bd0e726059e1081782e8bf028e2679c74ab82e))
+* Remove redundant git unshallow command ([ee8f5b3](https://github.com/pasquinphilippe/mili-release/commit/ee8f5b35426a4048bdec87f6e601f7f1399cb668))
+* update commitlint workflow to handle commit ranges correctly ([aeb12e6](https://github.com/pasquinphilippe/mili-release/commit/aeb12e69919db1b805939384a803b16aeb4db2b7))
+
 # [1.4.0](https://github.com/pasquinphilippe/mili-release/compare/v1.3.1...v1.4.0) (2025-01-22)
 
 
