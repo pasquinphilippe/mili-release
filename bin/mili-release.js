@@ -400,35 +400,29 @@ async function setupGitHub(projectName, shopifyToken, storeUrl) {
     console.log(`\nCreating repository ${confirmRepoName}...`);
 
     try {
-      // Check if we're in a Git repository
-      const inGitRepo = isGitRepository();
-      const isRoot = isGitRoot();
-
-      if (inGitRepo && !isRoot) {
-        console.log(chalk.yellow('\nWarning: You are in a subdirectory of an existing Git repository.'));
-        console.log('Please initialize a new repository in a different directory.');
-        return;
-      }
-
-      // If we're at the root of a Git repository, reinitialize
-      if (inGitRepo && isRoot) {
-        console.log(chalk.yellow('\nReinitializing Git repository...'));
-        fs.rmSync('.git', { recursive: true, force: true });
-      }
-
-      // Initialize git
-      execSync('git init', { stdio: 'inherit' });
-      execSync('git checkout -b main', { stdio: 'inherit' });
-
-      // Create the repository
-      execSync(`gh repo create "${confirmRepoName}" --private --source=.`, { stdio: 'inherit' });
+      // First create the repository on GitHub without pushing
+      execSync(`gh repo create "${confirmRepoName}" --private`, { stdio: 'inherit' });
       console.log(chalk.green('✓ Repository created successfully'));
 
       // Get GitHub username
       const username = execSync('gh api user -q .login', { encoding: 'utf8' }).trim();
 
-      // Stage and commit
+      // Initialize git if needed
+      if (!isGitRepository()) {
+        execSync('git init', { stdio: 'inherit' });
+      }
+
+      // Create main branch if it doesn't exist
+      try {
+        execSync('git rev-parse --verify main', { stdio: 'ignore' });
+      } catch (error) {
+        execSync('git checkout -b main', { stdio: 'inherit' });
+      }
+
+      // Stage all files
       execSync('git add .', { stdio: 'inherit' });
+
+      // Create initial commit
       try {
         execSync('git commit -m "feat: Initial theme setup"', { stdio: 'inherit' });
       } catch (error) {
@@ -437,10 +431,17 @@ async function setupGitHub(projectName, shopifyToken, storeUrl) {
         }
       }
 
-      // Set up remote and push
+      // Set up remote
+      try {
+        execSync('git remote remove origin', { stdio: 'pipe' });
+      } catch (error) {
+        // Ignore error if remote doesn't exist
+      }
+
       execSync(`git remote add origin https://github.com/${username}/${confirmRepoName}.git`, { stdio: 'inherit' });
       console.log(chalk.green('✓ Remote added successfully'));
 
+      // Push to remote
       execSync('git push -u origin main --force', { stdio: 'inherit' });
       console.log(chalk.green('✓ Initial code pushed successfully'));
 
