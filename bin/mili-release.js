@@ -324,6 +324,35 @@ async function setupThemes(storeUrl, themeToken, clientName) {
   }
 }
 
+// Helper function to check if we're in a Git repository
+function isGitRepository() {
+  try {
+    execSync('git rev-parse --is-inside-work-tree', { stdio: 'ignore' });
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+// Helper function to check if we're in the root of a Git repository
+function isGitRoot() {
+  try {
+    const gitDir = execSync('git rev-parse --git-dir', { encoding: 'utf8' }).trim();
+    return gitDir === '.git';
+  } catch (error) {
+    return false;
+  }
+}
+
+// Helper function to get the current Git branch
+function getCurrentBranch() {
+  try {
+    return execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf8' }).trim();
+  } catch (error) {
+    return null;
+  }
+}
+
 async function setupGitHub(projectName, shopifyToken, storeUrl) {
   console.log('\nSetting up GitHub integration...\n');
 
@@ -370,7 +399,36 @@ async function setupGitHub(projectName, shopifyToken, storeUrl) {
       ]);
 
       console.log(`\nCreating repository ${confirmRepoName}...`);
+
+      // Check if we're in a Git repository
+      const inGitRepo = isGitRepository();
+      const isRoot = isGitRoot();
+      const currentBranch = getCurrentBranch();
+
+      if (inGitRepo && !isRoot) {
+        // We're in a subdirectory of a Git repository
+        console.log(chalk.yellow('\nWarning: You are in a subdirectory of an existing Git repository.'));
+        console.log('Please initialize a new repository in a different directory.');
+        return;
+      }
+
+      // If we're at the root of a Git repository, we need to reinitialize
+      if (inGitRepo && isRoot) {
+        console.log(chalk.yellow('\nReinitializing Git repository...'));
+        try {
+          // Remove existing Git repository
+          fs.rmSync('.git', { recursive: true, force: true });
+          // Initialize new repository
+          execSync('git init', { stdio: 'inherit' });
+          execSync('git checkout -b main', { stdio: 'inherit' });
+        } catch (error) {
+          console.error(chalk.red('Error reinitializing Git repository:'), error.message);
+          return;
+        }
+      }
+
       try {
+        // Create the repository and push
         execSync(`gh repo create "${confirmRepoName}" --private --source=. --remote=origin --push`, { stdio: 'inherit' });
       } catch (error) {
         if (error.message.includes('already exists')) {
@@ -397,12 +455,16 @@ async function setupGitHub(projectName, shopifyToken, storeUrl) {
     }
   }
 
-  // Push initial commit
-  try {
-    execSync('git push -u origin main', { stdio: 'inherit' });
-  } catch (error) {
-    console.error(chalk.yellow('\nWarning: Error pushing to GitHub. You may need to push manually.'));
-    console.error(chalk.red(error.message));
+  // Push initial commit if we have a Git repository
+  if (isGitRepository()) {
+    try {
+      execSync('git add .', { stdio: 'inherit' });
+      execSync('git commit -m "feat: Initial commit"', { stdio: 'inherit' });
+      execSync('git push -u origin main', { stdio: 'inherit' });
+    } catch (error) {
+      console.error(chalk.yellow('\nWarning: Error pushing to GitHub. You may need to push manually.'));
+      console.error(chalk.red(error.message));
+    }
   }
 }
 
@@ -478,150 +540,23 @@ function setupGitHubWorkflows() {
     fs.mkdirSync(workflowDir, { recursive: true });
   }
 
-  // Define all workflow files
-  const workflows = {
-    'theme-release.yml': `name: Theme Release
+  const templatesDir = getTemplatesDir();
+  const workflowTemplatesDir = path.join(templatesDir, 'workflows');
 
-on:
-  push:
-    branches: [main, staging]
-  pull_request:
-    branches: [main, staging]
+  // Copy each workflow file from templates
+  const workflowFiles = ['release.yml', 'preview.yml', 'sync.yml'];
 
-jobs:
-  validate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: npm ci
-      - name: Validate Commits
-        run: |
-          if [ "\${{ github.event_name }}" = "pull_request" ]; then
-            # For pull requests, check all commits except merge commits
-            git log --format=%B \${{ github.event.pull_request.base.sha }}..\${{ github.event.pull_request.head.sha }} |
-            grep -v "^Merge branch" |
-            grep -v "chore(release):" |
-            while read commit; do
-              echo "$commit" | npx commitlint
-            done
-          else
-            # For pushes, check only the latest commit if it's not a merge or release commit
-            commit_msg=$(git log -1 --format=%B)
-            if [[ ! $commit_msg =~ ^Merge\\ branch && ! $commit_msg =~ ^chore\\(release\\): ]]; then
-              echo "$commit_msg" | npx commitlint
-            fi
-          fi
-
-  release:
-    needs: validate
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - name: Install dependencies
-        run: npm ci
-      - name: Setup Shopify CLI
-        run: npm install -g @shopify/cli @shopify/theme
-      - name: Authenticate Shopify CLI
-        run: echo "\${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}" | shopify theme access login --password
-      - name: Release
-        env:
-          GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
-          SHOPIFY_CLI_THEME_TOKEN: \${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}
-          SHOPIFY_STORE_URL: \${{ secrets.SHOPIFY_STORE_URL }}
-          HUSKY: 0
-        run: npx semantic-release`,
-
-    'theme-preview.yml': `name: Theme Preview
-
-on:
-  pull_request:
-    branches: [main, staging]
-
-jobs:
-  preview:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - name: Setup Shopify CLI
-        run: npm install -g @shopify/cli @shopify/theme
-      - name: Authenticate Shopify CLI
-        run: echo "\${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}" | shopify theme access login --password
-      - name: Push Theme Preview
-        run: |
-          BRANCH_NAME=\$(echo \${{ github.head_ref }} | sed 's/[^a-zA-Z0-9]/-/g')
-          PR_NUMBER=\${{ github.event.pull_request.number }}
-          THEME_NAME="[PR #\${PR_NUMBER}] \${BRANCH_NAME}"
-          shopify theme push --unpublished -t "\${THEME_NAME}"
-      - name: Comment Preview URL
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const storeDomain = process.env.SHOPIFY_STORE_URL;
-            const previewUrl = \`https://\${storeDomain}/admin/themes\`;
-            const comment = \`🎨 Theme preview has been pushed!\n\nView the theme: [\${previewUrl}](\${previewUrl})\`;
-            github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: comment
-            });
-        env:
-          SHOPIFY_STORE_URL: \${{ secrets.SHOPIFY_STORE_URL }}`,
-
-    'sync-production.yml': `name: Sync Production Theme
-
-on:
-  workflow_dispatch:
-    inputs:
-      source_theme:
-        description: 'Source theme ID'
-        required: true
-      target_theme:
-        description: 'Target theme ID'
-        required: true
-
-jobs:
-  sync:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - name: Setup Shopify CLI
-        run: npm install -g @shopify/cli @shopify/theme
-      - name: Authenticate Shopify CLI
-        run: echo "\${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}" | shopify theme access login --password
-      - name: Pull Source Theme
-        run: shopify theme pull -t \${{ github.event.inputs.source_theme }}
-      - name: Push to Target Theme
-        run: shopify theme push -t \${{ github.event.inputs.target_theme }}`
-  };
-
-  // Create each workflow file
-  for (const [filename, content] of Object.entries(workflows)) {
-    const filePath = path.join(workflowDir, filename);
+  for (const filename of workflowFiles) {
     try {
-      fs.writeFileSync(filePath, content);
-      console.log(chalk.green(`Created ${filename}`));
+      const sourcePath = path.join(workflowTemplatesDir, filename);
+      const targetPath = path.join(workflowDir, filename);
+
+      if (fs.existsSync(sourcePath)) {
+        fs.copyFileSync(sourcePath, targetPath);
+        console.log(chalk.green(`Created ${filename}`));
+      } else {
+        console.error(chalk.yellow(`Warning: Template file ${filename} not found in package templates`));
+      }
     } catch (error) {
       console.error(chalk.yellow(`Warning: Could not create ${filename}`));
       console.error(error.message);

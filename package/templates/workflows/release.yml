@@ -1,55 +1,63 @@
-name: Release & Deploy
+name: Theme Release
 
 on:
   push:
-    branches: [main, development]
+    branches: [main, staging]
   pull_request:
-    branches: [main, development]
+    branches: [main, staging]
 
 jobs:
-  release:
-    name: Release
+  validate:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: 20
+      - run: npm ci
+      - name: Validate Commits
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            # For pull requests, check all commits except merge commits
+            git log --format=%B ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} |
+            grep -v "^Merge branch" |
+            grep -v "chore(release):" |
+            while read commit; do
+              echo "$commit" | npx commitlint
+            done
+          else
+            # For pushes, check only the latest commit if it's not a merge or release commit
+            commit_msg=$(git log -1 --format=%B)
+            if [[ ! $commit_msg =~ ^Merge\ branch && ! $commit_msg =~ ^chore\(release\): ]]; then
+              echo "$commit_msg" | npx commitlint
+            fi
+          fi
 
+  release:
+    needs: validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
       - name: Install dependencies
         run: npm ci
-
-      - name: Semantic Release
+      - name: Setup Shopify CLI
+        run: npm install -g @shopify/cli @shopify/theme
+      - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
-
-  deploy:
-    name: Deploy to Shopify
-    needs: release
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-
-      - name: Install Shopify CLI
-        run: npm install -g @shopify/cli @shopify/theme
-
-      - name: Deploy to Shopify
-        env:
-          SHOPIFY_FLAG_STORE: ${{ secrets.SHOPIFY_STORE_URL }}
           SHOPIFY_CLI_THEME_TOKEN: ${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}
-        run: shopify theme push
+          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE_URL }}
+          HUSKY: 0
+        run: npx semantic-release
