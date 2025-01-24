@@ -458,12 +458,40 @@ async function setupGitHub(projectName, shopifyToken, storeUrl) {
   // Push initial commit if we have a Git repository
   if (isGitRepository()) {
     try {
+      // Check if we have any commits
+      const hasCommits = execSync('git rev-parse HEAD', { stdio: 'pipe' }).toString().trim();
+
+      // Stage all files
       execSync('git add .', { stdio: 'inherit' });
-      execSync('git commit -m "feat: Initial commit"', { stdio: 'inherit' });
+
+      // Create initial commit if no commits exist
+      if (!hasCommits) {
+        execSync('git commit -m "feat: Initial theme setup"', { stdio: 'inherit' });
+      } else {
+        execSync('git commit -m "feat: Update theme configuration"', { stdio: 'inherit' });
+      }
+
+      // Check if remote exists
+      try {
+        execSync('git remote get-url origin', { stdio: 'pipe' });
+      } catch (error) {
+        // Add remote if it doesn't exist
+        execSync(`git remote add origin https://github.com/${username}/${confirmRepoName}.git`, { stdio: 'inherit' });
+      }
+
+      // Push to remote
       execSync('git push -u origin main', { stdio: 'inherit' });
     } catch (error) {
-      console.error(chalk.yellow('\nWarning: Error pushing to GitHub. You may need to push manually.'));
-      console.error(chalk.red(error.message));
+      if (error.message.includes('nothing to commit')) {
+        console.log(chalk.yellow('\nNo changes to commit.'));
+      } else {
+        console.error(chalk.yellow('\nWarning: Error with Git operations. You may need to run these commands manually:'));
+        console.log(chalk.cyan('\ngit add .'));
+        console.log(chalk.cyan('git commit -m "feat: Initial theme setup"'));
+        console.log(chalk.cyan(`git remote add origin https://github.com/${username}/${confirmRepoName}.git`));
+        console.log(chalk.cyan('git push -u origin main\n'));
+        console.error(chalk.red(error.message));
+      }
     }
   }
 }
