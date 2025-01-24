@@ -1,3 +1,10 @@
+## [1.6.1](https://github.com/pasquinphilippe/mili-release/compare/v1.6.0...v1.6.1) (2025-01-24)
+
+
+### Bug Fixes
+
+* Github directory creation problem ([5b2c8be](https://github.com/pasquinphilippe/mili-release/commit/5b2c8bebf7f71aea672dbbedda90395776684936))
+
 # [1.6.0](https://github.com/pasquinphilippe/mili-release/compare/v1.5.1...v1.6.0) (2025-01-24)
 
 
