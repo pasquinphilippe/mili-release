@@ -1,3 +1,10 @@
+## [1.6.2](https://github.com/pasquinphilippe/mili-release/compare/v1.6.1...v1.6.2) (2025-01-24)
+
+
+### Bug Fixes
+
+* Github creation ([2bf6fca](https://github.com/pasquinphilippe/mili-release/commit/2bf6fcab550381e34ff805031578739f5b1f01e9))
+
 ## [1.6.1](https://github.com/pasquinphilippe/mili-release/compare/v1.6.0...v1.6.1) (2025-01-24)
 
 
