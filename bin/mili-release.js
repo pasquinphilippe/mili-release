@@ -384,62 +384,65 @@ async function setupGitHub(projectName, shopifyToken, storeUrl) {
   }
 
   if (githubSetup === 'create') {
+    // Create new repository with project name
+    const repoName = projectName.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+
+    // Ask for confirmation of repository name
+    const { confirmRepoName } = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'confirmRepoName',
+        message: `Repository will be created as "${repoName}". Press Enter to confirm or type a different name:`,
+        default: repoName
+      }
+    ]);
+
+    console.log(`\nCreating repository ${confirmRepoName}...`);
+
     try {
-      // Create new repository with project name
-      const repoName = projectName.toLowerCase().replace(/[^a-z0-9-]/g, '-');
-
-      // Ask for confirmation of repository name
-      const { confirmRepoName } = await inquirer.prompt([
-        {
-          type: 'input',
-          name: 'confirmRepoName',
-          message: `Repository will be created as "${repoName}". Press Enter to confirm or type a different name:`,
-          default: repoName
-        }
-      ]);
-
-      console.log(`\nCreating repository ${confirmRepoName}...`);
-
       // Check if we're in a Git repository
       const inGitRepo = isGitRepository();
       const isRoot = isGitRoot();
-      const currentBranch = getCurrentBranch();
 
       if (inGitRepo && !isRoot) {
-        // We're in a subdirectory of a Git repository
         console.log(chalk.yellow('\nWarning: You are in a subdirectory of an existing Git repository.'));
         console.log('Please initialize a new repository in a different directory.');
         return;
       }
 
-      // If we're at the root of a Git repository, we need to reinitialize
+      // If we're at the root of a Git repository, reinitialize
       if (inGitRepo && isRoot) {
         console.log(chalk.yellow('\nReinitializing Git repository...'));
-        try {
-          // Remove existing Git repository
-          fs.rmSync('.git', { recursive: true, force: true });
-          // Initialize new repository
-          execSync('git init', { stdio: 'inherit' });
-          execSync('git checkout -b main', { stdio: 'inherit' });
-        } catch (error) {
-          console.error(chalk.red('Error reinitializing Git repository:'), error.message);
-          return;
-        }
+        fs.rmSync('.git', { recursive: true, force: true });
       }
 
-      try {
-        // Create the repository and push
-        execSync(`gh repo create "${confirmRepoName}" --private --source=. --remote=origin --push`, { stdio: 'inherit' });
-      } catch (error) {
-        if (error.message.includes('already exists')) {
-          console.error(chalk.red('Repository already exists. Please choose a different name.'));
-          return;
-        }
-        throw error;
-      }
+      // Initialize git
+      execSync('git init', { stdio: 'inherit' });
+      execSync('git checkout -b main', { stdio: 'inherit' });
 
-      // Get GitHub username using gh CLI
+      // Create the repository
+      execSync(`gh repo create "${confirmRepoName}" --private --source=.`, { stdio: 'inherit' });
+      console.log(chalk.green('✓ Repository created successfully'));
+
+      // Get GitHub username
       const username = execSync('gh api user -q .login', { encoding: 'utf8' }).trim();
+
+      // Stage and commit
+      execSync('git add .', { stdio: 'inherit' });
+      try {
+        execSync('git commit -m "feat: Initial theme setup"', { stdio: 'inherit' });
+      } catch (error) {
+        if (!error.message.includes('nothing to commit')) {
+          throw error;
+        }
+      }
+
+      // Set up remote and push
+      execSync(`git remote add origin https://github.com/${username}/${confirmRepoName}.git`, { stdio: 'inherit' });
+      console.log(chalk.green('✓ Remote added successfully'));
+
+      execSync('git push -u origin main --force', { stdio: 'inherit' });
+      console.log(chalk.green('✓ Initial code pushed successfully'));
 
       // Set up secrets
       console.log('\nSetting up GitHub secrets...');
@@ -449,49 +452,20 @@ async function setupGitHub(projectName, shopifyToken, storeUrl) {
       });
 
     } catch (error) {
-      console.error(chalk.yellow('\nWarning: Error creating GitHub repository. You may need to create it manually.'));
+      if (error.message.includes('already exists')) {
+        console.error(chalk.red('Repository already exists. Please choose a different name.'));
+        return;
+      }
+      console.error(chalk.yellow('\nWarning: Error in GitHub setup. You may need to complete these steps manually:'));
+      console.log(chalk.cyan('\n1. Create a repository on GitHub'));
+      console.log(chalk.cyan('2. Run these commands:'));
+      console.log(chalk.cyan('   git init'));
+      console.log(chalk.cyan('   git add .'));
+      console.log(chalk.cyan('   git commit -m "feat: Initial theme setup"'));
+      console.log(chalk.cyan('   git branch -M main'));
+      console.log(chalk.cyan(`   git remote add origin https://github.com/${username}/${confirmRepoName}.git`));
+      console.log(chalk.cyan('   git push -u origin main\n'));
       console.error(chalk.red(error.message));
-      return;
-    }
-  }
-
-  // Push initial commit if we have a Git repository
-  if (isGitRepository()) {
-    try {
-      // Check if we have any commits
-      const hasCommits = execSync('git rev-parse HEAD', { stdio: 'pipe' }).toString().trim();
-
-      // Stage all files
-      execSync('git add .', { stdio: 'inherit' });
-
-      // Create initial commit if no commits exist
-      if (!hasCommits) {
-        execSync('git commit -m "feat: Initial theme setup"', { stdio: 'inherit' });
-      } else {
-        execSync('git commit -m "feat: Update theme configuration"', { stdio: 'inherit' });
-      }
-
-      // Check if remote exists
-      try {
-        execSync('git remote get-url origin', { stdio: 'pipe' });
-      } catch (error) {
-        // Add remote if it doesn't exist
-        execSync(`git remote add origin https://github.com/${username}/${confirmRepoName}.git`, { stdio: 'inherit' });
-      }
-
-      // Push to remote
-      execSync('git push -u origin main', { stdio: 'inherit' });
-    } catch (error) {
-      if (error.message.includes('nothing to commit')) {
-        console.log(chalk.yellow('\nNo changes to commit.'));
-      } else {
-        console.error(chalk.yellow('\nWarning: Error with Git operations. You may need to run these commands manually:'));
-        console.log(chalk.cyan('\ngit add .'));
-        console.log(chalk.cyan('git commit -m "feat: Initial theme setup"'));
-        console.log(chalk.cyan(`git remote add origin https://github.com/${username}/${confirmRepoName}.git`));
-        console.log(chalk.cyan('git push -u origin main\n'));
-        console.error(chalk.red(error.message));
-      }
     }
   }
 }
