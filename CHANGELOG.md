@@ -1,3 +1,11 @@
+# [1.6.0](https://github.com/pasquinphilippe/mili-release/compare/v1.5.1...v1.6.0) (2025-01-24)
+
+
+### Features
+
+* Fix initial github repository ([e206956](https://github.com/pasquinphilippe/mili-release/commit/e20695651cfd3f0dc216a6b06fd87cb8a1b34491))
+* Initial theme setup ([70f7116](https://github.com/pasquinphilippe/mili-release/commit/70f71162153c012f3e8452f3bd5126a2b131abc2))
+
 ## [1.5.1](https://github.com/pasquinphilippe/mili-release/compare/v1.5.0...v1.5.1) (2025-01-23)
 
 
