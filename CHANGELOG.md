@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/pasquinphilippe/mili-release/compare/v1.7.0...v1.8.0) (2025-01-31)
+
+
+### Features
+
+* **cli:** Enhance theme initialization and GitHub integration ([14231f4](https://github.com/pasquinphilippe/mili-release/commit/14231f411e8c98683272e10b9d9a4419291dbafa))
+
 # [1.7.0](https://github.com/pasquinphilippe/mili-release/compare/v1.6.3...v1.7.0) (2025-01-31)
 
 
