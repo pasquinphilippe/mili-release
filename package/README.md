@@ -9,6 +9,7 @@ A CLI tool for setting up Shopify theme development with semantic versioning and
 - 📦 GitHub Actions integration
 - 🔒 Secure secrets management
 - 📝 Comprehensive documentation generation
+- 🔄 Workflow synchronization system
 
 ## Installation
 
@@ -39,6 +40,8 @@ Since this is a private package, you'll need to:
 
 ## Usage
 
+### Initial Setup
+
 1. Create a new theme directory:
 ```bash
 mkdir my-theme
@@ -56,15 +59,51 @@ mili-release
    - Set up theme token
    - Choose GitHub repository options
 
+### Keeping Workflows Updated
+
+After updating the package, you can sync your workflows and configurations without redoing the entire setup:
+
+```bash
+# Using npm script
+npm run sync-workflows
+
+# Or using CLI directly
+mili-release --sync
+```
+
+This will:
+- Update GitHub Actions workflows
+- Sync release configurations
+- Backup existing files (.backup extension)
+- Maintain your custom configurations
+
+#### Files that get synced:
+- `.github/workflows/theme-preview.yml`
+- `.github/workflows/release.yml`
+- `release.config.js`
+- `commitlint.config.js`
+
 ## What It Sets Up
 
 - Complete Shopify theme structure
 - Semantic versioning configuration
-- GitHub Actions workflows
-- Automated deployments
+- GitHub Actions workflows:
+  - Theme preview on PRs
+  - Automated releases
+  - Production deployments
 - Comprehensive documentation
 - Git hooks for commit message validation
 - Environment configuration
+
+## Maintenance
+
+### Workflow Updates
+When new versions of the package are released with workflow improvements:
+1. Update the package: `npm update @mili-release/cli`
+2. Sync workflows: `npm run sync-workflows`
+3. Review changes in the updated files
+4. Check backup files for any custom configurations to preserve
+5. Commit the changes
 
 ## Requirements
 

@@ -47,6 +47,14 @@ This repository contains two main components:
 - 🛡️ Branch protection setup
 - 💾 Local configuration management
 - 🏪 Multiple store support
+- 🔄 Workflow synchronization system
+
+### Theme Features (`/package`)
+- 📦 Modular theme structure
+- 🚀 GitHub Actions workflows
+- 🔄 Semantic versioning
+- 🧪 Testing framework
+- 📱 Responsive design system
 
 ### Theme Features (`/package`)
 - 📦 Modular theme structure
@@ -73,6 +81,8 @@ yarn global add @milistack/theme-cli
 ```
 
 ## 🚀 Usage
+
+### Initial Setup
 ```bash
 # Create a new theme project
 mili-theme
@@ -81,42 +91,41 @@ mili-theme
 mili-release
 ```
 
-## 🤝 Contributing
+### Workflow Management
 
-We welcome contributions to both components of the project! Here's how to get started:
+#### Sync Latest Workflows
+After updating the package, you can sync your workflows and configurations:
+```bash
+# Using npm script
+npm run sync-workflows
 
-### Contributing to CLI (`/bin`)
-1. Fork the repository
-2. Create your feature branch from `main`
-3. Make changes to files in `/bin`
-4. Test CLI functionality
-5. Submit PR with CLI improvements
+# Or using CLI directly
+mili-release --sync
+```
 
-### Contributing to Theme (`/package`)
-1. Fork the repository
-2. Create your feature branch from `main`
-3. Make changes to files in `/package`
-4. Test theme functionality
-5. Submit PR with theme improvements
+This will:
+- Update GitHub Actions workflows
+- Sync release configurations
+- Create backups of existing files
+- Preserve your custom configurations
 
-See our detailed [Contributing Guide](CONTRIBUTING.md) for:
-- Development workflow
-- Commit guidelines
-- Testing requirements
-- Code style
+#### Files Synced:
+- `.github/workflows/theme-preview.yml`
+- `.github/workflows/release.yml`
+- `release.config.js`
+- `commitlint.config.js`
 
-### Which Part Should I Contribute To?
+### Store Management
+```bash
+# List stored configurations
+mili-release --list-stores
 
-| If you want to... | Contribute to... |
-|------------------|------------------|
-| Improve theme setup process | CLI (`/bin`) |
-| Add new CLI commands | CLI (`/bin`) |
-| Enhance GitHub integration | CLI (`/bin`) |
-| Fix CLI bugs | CLI (`/bin`) |
-| Improve theme structure | Theme (`/package`) |
-| Add theme features | Theme (`/package`) |
-| Update theme components | Theme (`/package`) |
-| Modify theme workflows | Theme (`/package`) |
+# Use stored configuration
+mili-release --use-stored
+
+# Remove stored configuration
+mili-release --remove-store <store-name>
+```
 
 ## 📚 Documentation
 
@@ -133,6 +142,44 @@ See our detailed [Contributing Guide](CONTRIBUTING.md) for:
 ### General Documentation
 - [Contributing Guide](CONTRIBUTING.md)
 - [Changelog](CHANGELOG.md)
+
+## 🤝 Contributing
+
+We welcome contributions to both components of the project! Here's how to get started:
+
+### Contributing to CLI (`/bin`)
+1. Fork the repository
+2. Create your feature branch from `main`
+3. Make changes to files in `/bin`
+4. Test CLI functionality
+5. Submit PR with CLI improvements
+
+=======
+## 🤝 Contributing
+
+We welcome contributions to both components of the project! Here's how to get started:
+
+### Contributing to CLI (`/bin`)
+1. Fork the repository
+2. Create your feature branch from `main`
+3. Make changes to files in `/bin`
+4. Test CLI functionality
+5. Submit PR with CLI improvements
+
+
+### Contributing to Theme (`/package`)
+1. Fork the repository
+2. Create your feature branch from `main`
+3. Make changes to files in `/package`
+4. Test theme functionality
+5. Submit PR with theme improvements
+
+See our detailed [Contributing Guide](CONTRIBUTING.md) for:
+- Development workflow
+- Commit guidelines
+- Testing requirements
+- Code style
+
 
 ## 📄 License
 MIT © [Milistack](https://github.com/milistack)
