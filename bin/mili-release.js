@@ -140,11 +140,11 @@ async function authenticateGitHubCLI() {
 
     console.log(chalk.green('✓ Successfully authenticated with GitHub'));
     return true;
-  } catch (error) {
+    } catch (error) {
     console.error(chalk.red('Failed to authenticate with GitHub:'), error.message);
     return false;
+    }
   }
-}
 
 // Helper function to create GitHub repository
 async function createGitHubRepo(repoName) {
@@ -254,14 +254,14 @@ async function init() {
   console.log(chalk.blue('🚀 Welcome to Mili Release - Shopify Theme Automation'));
 
   const answers = await inquirer.prompt([
-    {
-      type: 'input',
+        {
+          type: 'input',
       name: 'clientName',
-      message: 'What is your client/project name?',
+          message: 'What is your client/project name?',
       validate: input => input.length > 0
-    },
-    {
-      type: 'input',
+        },
+        {
+          type: 'input',
       name: 'storeUrl',
       message: 'What is your Shopify store URL? (e.g., my-store.myshopify.com)',
       validate: input => input.includes('.myshopify.com')
@@ -283,10 +283,10 @@ async function init() {
   // Create necessary directories
   const dirs = ['.github/workflows', '.husky'];
   dirs.forEach(dir => {
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-  });
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+    });
 
   // Read and process template files
   const packageJson = JSON.parse(readTemplateFile('package.json'));
@@ -348,7 +348,7 @@ SHOPIFY_CLI_THEME_TOKEN=${answers.themeToken}`;
 
   // Initialize git and install dependencies
   try {
-    execSync('git init', { stdio: 'inherit' });
+        execSync('git init', { stdio: 'inherit' });
     execSync('npm install', { stdio: 'inherit' });
     execSync('npx husky install', { stdio: 'inherit' });
     execSync('npx husky add .husky/commit-msg "npx --no -- commitlint --edit $1"', { stdio: 'inherit' });
@@ -607,8 +607,8 @@ Next steps:
    git push -u origin main
 3. Make your first changes using conventional commits
       `));
-    }
-  } catch (error) {
+      }
+    } catch (error) {
     console.error(chalk.red('Error during setup:', error));
   }
 }

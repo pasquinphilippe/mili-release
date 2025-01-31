@@ -17,7 +17,6 @@ export default {
       ],
     ],
     "scope-case": [2, "always", "kebab-case"],
-    "subject-case": [2, "always", "sentence-case"],
-    "body-max-line-length": [2, "always", 100],
+    "subject-case": [2, "always", "sentence-case"]
   },
 };
