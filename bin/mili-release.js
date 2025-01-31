@@ -8,6 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import os from 'os';
+import { argv } from 'yargs';
 
 // ES Module equivalents for __dirname and __filename
 const __filename = fileURLToPath(import.meta.url);
@@ -567,6 +568,78 @@ function setupGitHubWorkflows() {
   }
 }
 
+async function syncWorkflowsAndConfig(projectPath = process.cwd()) {
+  console.log(chalk.blue('\nSyncing workflows and configurations...\n'));
+
+  try {
+    // Define source and target paths
+    const packagePath = path.join(__dirname, '..', 'package');
+
+    // Files to sync
+    const filesToSync = [
+      {
+        source: '.github/workflows/theme-preview.yml',
+        target: '.github/workflows/theme-preview.yml',
+        type: 'workflow'
+      },
+      {
+        source: '.github/workflows/release.yml',
+        target: '.github/workflows/release.yml',
+        type: 'workflow'
+      },
+      {
+        source: 'release.config.js',
+        target: 'release.config.js',
+        type: 'config'
+      },
+      {
+        source: 'commitlint.config.js',
+        target: 'commitlint.config.js',
+        type: 'config'
+      }
+    ];
+
+    // Ensure .github/workflows directory exists
+    const workflowsDir = path.join(projectPath, '.github', 'workflows');
+    if (!fs.existsSync(workflowsDir)) {
+      fs.mkdirSync(workflowsDir, { recursive: true });
+    }
+
+    // Sync each file
+    for (const file of filesToSync) {
+      const sourcePath = path.join(packagePath, file.source);
+      const targetPath = path.join(projectPath, file.target);
+
+      if (!fs.existsSync(sourcePath)) {
+        console.log(chalk.yellow(`⚠️  Source file not found: ${file.source}`));
+        continue;
+      }
+
+      // Backup existing file if it exists
+      if (fs.existsSync(targetPath)) {
+        const backupPath = `${targetPath}.backup`;
+        fs.copyFileSync(targetPath, backupPath);
+        console.log(chalk.gray(`📦 Backed up existing ${file.type}: ${file.target} → ${path.basename(backupPath)}`));
+      }
+
+      // Copy new file
+      fs.copyFileSync(sourcePath, targetPath);
+      console.log(chalk.green(`✓ Updated ${file.type}: ${file.target}`));
+    }
+
+    console.log(chalk.green('\n✨ Successfully synced workflows and configurations!'));
+    console.log(chalk.blue('\nNext steps:'));
+    console.log('1. Review the updated files');
+    console.log('2. Check for any custom configurations in the backup files');
+    console.log('3. Commit the changes if everything looks good');
+    console.log('\nBackup files are created with .backup extension');
+
+  } catch (error) {
+    console.error(chalk.red('\nError syncing workflows and configurations:'), error.message);
+    console.log(chalk.yellow('\nTry running the command with sudo if it\'s a permissions issue.'));
+  }
+}
+
 async function main() {
   console.log(chalk.blue('Welcome to Mili Release - Shopify Theme Automation\n'));
 
@@ -585,6 +658,11 @@ async function main() {
       return;
     }
     await removeStoredConfig(storeName);
+    return;
+  }
+
+  if (argv.sync) {
+    await syncWorkflowsAndConfig();
     return;
   }
 

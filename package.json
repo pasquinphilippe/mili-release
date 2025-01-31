@@ -22,7 +22,8 @@
     "theme:push:production": "shopify theme push --store=sandbox-semantic-release.myshopify.com -t \"[Production] - douda\"",
     "test": "echo \"No tests configured\"",
     "prepare": "husky install",
-    "semantic-release": "semantic-release"
+    "semantic-release": "semantic-release",
+    "sync-workflows": "mili-release --sync"
   },
   "dependencies": {
     "chalk": "^5.3.0",
