@@ -8,9 +8,93 @@ import chalk from 'chalk';
 import os from 'os';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// Parse command line arguments
+const argv = yargs(hideBin(process.argv))
+  .usage('Usage: $0 [command]')
+  .command('$0', 'Initialize a new theme project', {}, init)
+  .command('sync', 'Sync workflows and configurations', {}, syncWorkflowsAndConfig)
+  .command('help', 'Show help', {}, () => yargs.showHelp())
+  .command('connect-github', 'Connect or reconnect to GitHub', {}, async () => {
+    const hasGH = isGHCliInstalled();
+    if (!hasGH) {
+      await installGitHubCLI();
+    }
+    await authenticateGitHubCLI();
+  })
+  .command('list-stores', 'List stored configurations', {}, () => {
+    const configPath = path.join(os.homedir(), '.mili-theme', 'config.json');
+    if (fs.existsSync(configPath)) {
+      const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      console.log(chalk.blue('\nStored configurations:'));
+      Object.entries(config.stores || {}).forEach(([name, store]) => {
+        console.log(chalk.green(`\n${name}:`));
+        console.log(`  Store URL: ${store.url}`);
+        console.log(`  Theme Token: ${store.token ? '********' : 'Not set'}`);
+      });
+    } else {
+      console.log(chalk.yellow('\nNo stored configurations found.'));
+    }
+  })
+  .command('use-stored', 'Use a stored configuration', {}, async () => {
+    const configPath = path.join(os.homedir(), '.mili-theme', 'config.json');
+    if (!fs.existsSync(configPath)) {
+      console.log(chalk.red('\nNo stored configurations found.'));
+      return;
+    }
+
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    const stores = Object.keys(config.stores || {});
+
+    if (stores.length === 0) {
+      console.log(chalk.red('\nNo stored configurations found.'));
+      return;
+    }
+
+    const { storeName } = await inquirer.prompt([{
+      type: 'list',
+      name: 'storeName',
+      message: 'Select a stored configuration:',
+      choices: stores
+    }]);
+
+    const store = config.stores[storeName];
+    const envContent = `SHOPIFY_FLAG_STORE=${store.url}\nSHOPIFY_CLI_THEME_TOKEN=${store.token}`;
+    fs.writeFileSync('.env', envContent);
+    console.log(chalk.green('\n✨ Configuration applied successfully!'));
+  })
+  .command('remove-store <store-name>', 'Remove a stored configuration', (yargs) => {
+    return yargs.positional('store-name', {
+      describe: 'Name of the store configuration to remove',
+      type: 'string'
+    });
+  }, (argv) => {
+    const configPath = path.join(os.homedir(), '.mili-theme', 'config.json');
+    if (!fs.existsSync(configPath)) {
+      console.log(chalk.red('\nNo stored configurations found.'));
+      return;
+    }
+
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    if (!config.stores?.[argv.storeName]) {
+      console.log(chalk.red(`\nStore "${argv.storeName}" not found.`));
+      return;
+    }
+
+    delete config.stores[argv.storeName];
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+    console.log(chalk.green(`\n✨ Store "${argv.storeName}" removed successfully!`));
+  })
+  .help()
+  .alias('h', 'help')
+  .version()
+  .alias('v', 'version')
+  .argv;
 
 // Helper function to read template files
 function readTemplateFile(filename) {

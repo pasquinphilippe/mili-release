@@ -23,8 +23,13 @@ npm install -g @milistack/theme-cli
 
 ### Initialize a New Theme Project
 
+You can use any of these commands to start:
 ```bash
 mili-theme
+# or
+mili-release
+# or
+mili
 ```
 
 This will:
@@ -32,27 +37,79 @@ This will:
 2. Configure GitHub workflows
 3. Set up semantic versioning
 4. Configure Shopify CLI integration
+5. Set up Git hooks with Husky
+6. Configure conventional commits
+
+### Command Aliases
+
+The CLI can be invoked using any of these commands:
+```bash
+mili-theme   # Primary command
+mili-release # Alternative command
+mili         # Short command
+```
+
+### Interactive Setup
+
+The CLI will guide you through:
+1. Project/client name setup
+2. Shopify store configuration
+3. GitHub repository setup
+4. Theme token configuration
+5. Workflow configuration
+
+The setup process will:
+- Create necessary project directories
+- Set up GitHub Actions workflows
+- Configure semantic-release
+- Set up commit message validation
+- Install and configure Husky hooks
+- Create theme structure
+- Set up environment variables
 
 ### Available Commands
 
+The CLI provides several commands for managing your theme project:
+
 ```bash
-# Show help
-mili-theme --help
+# Initialize a new theme project (interactive)
+mili-theme
 
-# Update workflows and configurations
-mili-theme --sync
+# Show help and available commands
+mili-theme help
+# or
+mili-theme -h
 
-# Connect or reconnect to GitHub
-mili-theme --connect-github
+# Show version
+mili-theme -v
 
-# List stored configurations
-mili-theme --list-stores
+# Sync workflows and configurations
+mili-theme sync
 
-# Use a stored configuration
-mili-theme --use-stored
+# GitHub Integration
+mili-theme connect-github  # Connect or reconnect to GitHub
 
-# Remove a stored configuration
-mili-theme --remove-store <store-name>
+# Store Configuration Management
+mili-theme list-stores    # List all stored configurations
+mili-theme use-stored     # Use a stored configuration
+mili-theme remove-store <store-name>  # Remove a stored configuration
+```
+
+Each command will guide you through the necessary steps with interactive prompts where needed.
+
+### Development Commands
+
+When working on the CLI itself:
+
+```bash
+# Watch mode with auto-reload
+npm run dev
+
+# Run tests
+npm test
+
+# Create a release
+CI=true GITHUB_TOKEN=your-token npm run semantic-release
 ```
 
 ## Local Development
