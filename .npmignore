@@ -1,0 +1,23 @@
+# Development files
+.github/
+.husky/
+.git/
+.gitignore
+.npmrc
+*.log
+*.lock
+
+# Test files
+test-theme/
+__tests__/
+*.test.js
+*.spec.js
+
+# Documentation
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
+
+# Build artifacts
+dist/
+coverage/
+.nyc_output/

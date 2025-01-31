@@ -1,4 +1,4 @@
-name: Release
+name: Release Package
 
 on:
   push:
@@ -39,23 +39,14 @@ jobs:
       - name: Verify the integrity of provenance attestations and registry signatures
         run: npm audit signatures
 
-      - name: Setup Shopify CLI
-        run: |
-          npm install -g @shopify/cli @shopify/theme
-
-      - name: Authenticate with Shopify
-        env:
-          SHOPIFY_FLAG_STORE: ${{ secrets.SHOPIFY_STORE_URL }}
-          SHOPIFY_CLI_THEME_TOKEN: ${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}
-        run: shopify auth token ${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}
+      - name: Run tests
+        run: npm test
 
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          SHOPIFY_FLAG_STORE: ${{ secrets.SHOPIFY_STORE_URL }}
-          SHOPIFY_CLI_THEME_TOKEN: ${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}
         run: |
           git config --global user.email "github-actions@github.com"
           git config --global user.name "GitHub Actions"

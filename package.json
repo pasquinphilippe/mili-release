@@ -1,6 +1,6 @@
 {
   "name": "@milistack/theme-cli",
-  "version": "1.2.0",
+  "version": "0.0.0-development",
   "description": "CLI tool for setting up Shopify theme semantic releases",
   "private": false,
   "type": "module",
@@ -12,8 +12,7 @@
   },
   "files": [
     "bin",
-    "templates",
-    "package"
+    "templates"
   ],
   "publishConfig": {
     "access": "public",
@@ -23,14 +22,9 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "theme:dev": "shopify theme dev",
-    "theme:pull": "shopify theme pull",
-    "theme:push:staging": "shopify theme push -t \"[Staging]\"",
-    "theme:push:production": "shopify theme push -t \"[Production]\"",
     "test": "echo \"No tests configured\"",
     "prepare": "husky install",
     "semantic-release": "semantic-release",
-    "sync-workflows": "mili-theme --sync",
     "dev": "nodemon bin/mili-release.js",
     "dev:test": "mkdir -p test-theme && cd test-theme && node ../bin/mili-release.js",
     "link": "npm link && echo 'Now run: mkdir ~/test-theme && cd ~/test-theme && npm link @milistack/theme-cli'",

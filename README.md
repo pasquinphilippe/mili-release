@@ -1,181 +1,201 @@
-# 🚀 @milistack/theme-cli
+# @milistack/theme-cli
 
-<div align="center">
-  <img src="https://storage.googleapis.com/msgsndr/13wKtghjM0UiJUVzcCwH/media/678ec74139a4c6edc3269a76.png" width="200" />
-  <p><strong>A powerful CLI tool for setting up Shopify themes with semantic release automation</strong></p>
-</div>
+A powerful CLI tool for automating Shopify theme development with semantic versioning, preview deployments, and GitHub integration.
 
-## 🎯 Quick Start
+## Features
+
+- 🚀 Automated semantic versioning
+- 🔄 Preview themes for pull requests
+- 📦 GitHub Actions integration
+- 🛠️ Modern development workflow
+- 📝 Automated changelog generation
+- 🔐 Secure theme deployment
+
+## Installation
 
 ```bash
-# Install globally
 npm install -g @milistack/theme-cli
+```
 
-# Create a new theme
-mkdir my-theme && cd my-theme
+## Usage
+
+### Initialize a New Theme Project
+
+```bash
 mili-theme
 ```
 
-## 📋 What's Included
+This will:
+1. Set up your theme project structure
+2. Configure GitHub workflows
+3. Set up semantic versioning
+4. Configure Shopify CLI integration
 
-### 1. CLI Tool (`/bin`)
-- One-command theme setup
-- GitHub repository automation
-- Branch protection setup
-- Multiple store support
-- Workflow synchronization
-
-### 2. Theme Package (`/package`)
-- Modern Shopify theme structure
-- GitHub Actions workflows
-- Semantic versioning
-- Testing framework
-- Responsive design system
-
-## 🏗 Project Structure
-
-```
-.
-├── bin/                    # CLI implementation
-│   └── mili-release.js     # Main CLI entry point
-├── package/                # Theme package
-│   ├── templates/          # Project templates
-│   ├── workflows/          # GitHub Actions
-│   └── config/            # Default configs
-├── docs/                  # Documentation
-└── tests/                # Test suites
-```
-
-## 🔄 Development Conventions
-
-### Branch Strategy
-```
-main (production)
-  └── staging (development)
-       ├── feature/xyz
-       ├── fix/xyz
-       └── docs/xyz
-```
-
-### Commit Convention
-We follow [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
-<type>(<scope>): <description>
-
-[optional body]
-[optional footer]
-```
-
-**Types:**
-- `feat`: New feature (minor)
-- `fix`: Bug fix (patch)
-- `docs`: Documentation
-- `style`: Code style
-- `refactor`: Code changes
-- `test`: Testing
-- `chore`: Maintenance
-
-**Examples:**
-```bash
-feat(cli): Add new store management command
-fix(workflows): Correct staging deployment path
-docs(readme): Update installation instructions
-```
-
-## 🛠️ Requirements
-
-| Tool | Version | Purpose |
-|------|---------|----------|
-| Node.js | ≥ 16.x | Runtime |
-| npm/yarn | Latest | Package manager |
-| GitHub CLI | Latest | Repository setup |
-| Shopify CLI | Latest | Theme development |
-
-## 📦 Available Commands
+### Available Commands
 
 ```bash
 # Show help
 mili-theme --help
 
-# Sync workflows
+# Update workflows and configurations
 mili-theme --sync
 
-# Connect GitHub
+# Connect or reconnect to GitHub
 mili-theme --connect-github
 
-# Manage stores
-mili-theme --list-stores     # List stores
-mili-theme --use-stored      # Use stored config
-mili-theme --remove-store    # Remove store
+# List stored configurations
+mili-theme --list-stores
+
+# Use a stored configuration
+mili-theme --use-stored
+
+# Remove a stored configuration
+mili-theme --remove-store <store-name>
 ```
 
-## 🔄 Workflow Management
+## Local Development
 
-### Sync Latest Updates
+Want to contribute? Here's how to set up the CLI for local development:
+
+### Prerequisites
+
+- Node.js >= 20.0.0
+- npm >= 9.0.0
+- Git
+
+### Setup Local Development Environment
+
+1. **Clone the Repository**
+   ```bash
+   git clone https://github.com/pasquinphilippe/mili-release.git
+   cd mili-release/package
+   ```
+
+2. **Install Dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Link Package Locally**
+   ```bash
+   # Create a global symlink
+   npm run link
+
+   # This will create a test directory and link the package
+   # You can now use the CLI from your test directory
+   ```
+
+4. **Development Scripts**
+   ```bash
+   # Watch mode with auto-reload
+   npm run dev
+
+   # Test in a clean environment
+   npm run dev:test
+
+   # Remove local links
+   npm run unlink
+   ```
+
+### Testing Your Changes
+
+1. **Create a Test Project**
+   ```bash
+   mkdir ~/test-theme
+   cd ~/test-theme
+   npm link @milistack/theme-cli
+   ```
+
+2. **Run the CLI**
+   ```bash
+   mili-theme
+   ```
+
+3. **Test Specific Features**
+   ```bash
+   # Test workflow sync
+   mili-theme --sync
+
+   # Test GitHub integration
+   mili-theme --connect-github
+   ```
+
+### Commit Guidelines
+
+We use conventional commits to automate versioning. Your commit messages should follow this format:
+
 ```bash
-npm run sync-workflows
-# or
-mili-theme --sync
+# Features
+feat: add new command for X
+
+# Bug fixes
+fix: resolve issue with Y
+
+# Documentation
+docs: update installation instructions
+
+# Chores (no release)
+chore: update dependencies
 ```
 
-This updates:
-- GitHub Actions workflows
-- Release configurations
-- Commit validation
-- (Creates backups automatically)
+### Pull Request Process
 
-### GitHub Setup
-```bash
-mili-theme --connect-github
-```
+1. Create a feature branch
+   ```bash
+   git checkout -b feat/your-feature
+   # or
+   git checkout -b fix/your-fix
+   ```
 
-Sets up:
-- Repository creation/connection
-- Branch protection (main/staging)
-- GitHub secrets
-- Remote configuration
+2. Make your changes and commit using conventional commits
 
-## 🔒 Best Practices
+3. Push and create a PR against the staging branch
+   ```bash
+   git push origin feat/your-feature
+   ```
 
-### Security
-- Store sensitive data in GitHub Secrets
-- Use environment variables for configuration
-- Never commit API keys or tokens
-- Use `.gitignore` for sensitive files
+4. Your PR will automatically:
+   - Create a preview theme
+   - Run tests
+   - Validate commits
 
-### Code Quality
-- Follow ESLint configuration
-- Write meaningful commit messages
-- Add tests for new features
-- Document public APIs
+### Release Process
 
-### Workflow
-- Create feature branches from `staging`
-- Keep PRs focused and small
-- Update documentation with changes
-- Add labels to PRs and issues
+Releases are automated through GitHub Actions:
 
-## 📚 Documentation
+- Merges to `staging` create pre-releases
+- Merges to `main` create production releases
 
-- [CLI Guide](https://github.com/pasquinphilippe/mili-release/blob/main/docs/CLI_COMMANDS.md)
-- [Theme Structure](https://github.com/pasquinphilippe/mili-release/blob/main/docs/THEME_STRUCTURE.md)
-- [Contributing](https://github.com/pasquinphilippe/mili-release/blob/main/CONTRIBUTING.md)
-- [Changelog](https://github.com/pasquinphilippe/mili-release/blob/main/CHANGELOG.md)
+The version number is automatically determined based on your commits.
 
-## 🤝 Contributing
+## Troubleshooting
 
-1. Fork the repository
-2. Create your feature branch
-3. Make your changes
-4. Submit a pull request
+### Common Issues
 
-See [Contributing Guide](https://github.com/pasquinphilippe/mili-release/blob/main/CONTRIBUTING.md) for details.
+1. **Node Version Errors**
+   ```bash
+   nvm use 20
+   # or
+   nvm install 20
+   ```
 
-## 📝 License
-MIT © [Milistack](https://github.com/pasquinphilippe/mili-release)
+2. **Permission Issues**
+   ```bash
+   # If you get EACCES errors
+   sudo npm install -g @milistack/theme-cli
+   ```
 
----
-<div align="center">
-  <sub>Built with ❤️ by the Milistack team</sub>
-</div>
+3. **Workflow Sync Issues**
+   ```bash
+   # Remove existing workflows and try again
+   rm -rf .github/workflows
+   mili-theme --sync
+   ```
+
+## License
+
+MIT © [Milistack Group inc](https://github.com/pasquinphilippe/mili-release/blob/main/LICENSE)
+
+## Support
+
+Need help? [Open an issue](https://github.com/pasquinphilippe/mili-release/issues/new) or contact the maintainers.
