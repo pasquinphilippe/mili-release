@@ -1,3 +1,46 @@
+# [1.2.0](https://github.com/pasquinphilippe/mili-release/compare/v1.1.1...v1.2.0) (2025-01-31)
+
+
+### Bug Fixes
+
+* Add all github workflows to mili-theme action ([383531a](https://github.com/pasquinphilippe/mili-release/commit/383531a1388b02181e65b82fdb9e9840b6e4b66b))
+* add both binary names for CLI ([bddba30](https://github.com/pasquinphilippe/mili-release/commit/bddba3052fb8f9680a0021f85f49e2940003987e))
+* Add missing dependencies and configure ES modules ([d7c1749](https://github.com/pasquinphilippe/mili-release/commit/d7c1749beb03b61e84d2ec0cc0db5a71ff7aac88))
+* Changed require() to import statements ([847aac0](https://github.com/pasquinphilippe/mili-release/commit/847aac09033585c936ecda27128930e52fbfcbff))
+* clean up test directories and update package configuration ([891bb4d](https://github.com/pasquinphilippe/mili-release/commit/891bb4d61207349491166a7fcb47f1f79bb89e33))
+* Cli error ([9740f3d](https://github.com/pasquinphilippe/mili-release/commit/9740f3d2747a5bf11bad141cb37b313a97f1907e))
+* correct template literals and add templates directory check ([41bb036](https://github.com/pasquinphilippe/mili-release/commit/41bb036e3b93452fbea43fe48a720d60b3a95b73))
+* Disable Husky hooks during semantic-release ([731be83](https://github.com/pasquinphilippe/mili-release/commit/731be83c94c6068db2094943aaf6f63d7a56f275))
+* Ensure proper git history for commitlint ([03bd0e7](https://github.com/pasquinphilippe/mili-release/commit/03bd0e726059e1081782e8bf028e2679c74ab82e))
+* Existing directory ([40306e4](https://github.com/pasquinphilippe/mili-release/commit/40306e43db9f27d4f18080f425524885aa0aa5f8))
+* Github creation ([2bf6fca](https://github.com/pasquinphilippe/mili-release/commit/2bf6fcab550381e34ff805031578739f5b1f01e9))
+* Github creation fails often ([2598278](https://github.com/pasquinphilippe/mili-release/commit/2598278e55250c04c76889dd809085c2451fd86d))
+* Github directory creation problem ([5b2c8be](https://github.com/pasquinphilippe/mili-release/commit/5b2c8bebf7f71aea672dbbedda90395776684936))
+* improve GitHub repository creation process ([af49834](https://github.com/pasquinphilippe/mili-release/commit/af49834a0e27f9b0c755c36a9e040c0fbd57a724))
+* New commitlint ([49cd2e8](https://github.com/pasquinphilippe/mili-release/commit/49cd2e85fb45efb4a5446cff70feb06b0a39f8de))
+* Properly handles file path in ES modules ([b18c061](https://github.com/pasquinphilippe/mili-release/commit/b18c061cc1f2dcfda014f918761e8046a74ccc72))
+* Release package ([55fc452](https://github.com/pasquinphilippe/mili-release/commit/55fc4523f6cab7845482cdbe6324bda72a1ad61e))
+* Remove redundant git unshallow command ([ee8f5b3](https://github.com/pasquinphilippe/mili-release/commit/ee8f5b35426a4048bdec87f6e601f7f1399cb668))
+* Remove theme release workflow from CLI package ([51f5cc6](https://github.com/pasquinphilippe/mili-release/commit/51f5cc60f26e2684b6ef9097921725897a9e0bf3))
+* Theme preview yaml error at line 32 ([4f4c3bb](https://github.com/pasquinphilippe/mili-release/commit/4f4c3bbf3d19abc4fc76a7269b5de1d3ab681f3b))
+* Theme-Preview ([3144435](https://github.com/pasquinphilippe/mili-release/commit/31444356c8c857b4bae8456dcbe78c18f9380396))
+* Update commitlint config to use ES modules ([a8c93a2](https://github.com/pasquinphilippe/mili-release/commit/a8c93a2d7d4fff901f7abdbd05ab9e7f2562d5fc))
+* update commitlint workflow to handle commit ranges correctly ([aeb12e6](https://github.com/pasquinphilippe/mili-release/commit/aeb12e69919db1b805939384a803b16aeb4db2b7))
+* update theme naming convention to use client name ([70abc9b](https://github.com/pasquinphilippe/mili-release/commit/70abc9b3f427080d427cec885eb516025067ce6a))
+
+
+### Features
+
+* Add gitignore to mili-theme ([fbfbe26](https://github.com/pasquinphilippe/mili-release/commit/fbfbe264dea98b6139221010719bdff84a64a361))
+* add interactive theme selection ([9166c6a](https://github.com/pasquinphilippe/mili-release/commit/9166c6ac889872417453bef457fd57ece9f30e96))
+* **cli:** Enhance theme initialization and GitHub integration ([14231f4](https://github.com/pasquinphilippe/mili-release/commit/14231f411e8c98683272e10b9d9a4419291dbafa))
+* Fix initial github repository ([e206956](https://github.com/pasquinphilippe/mili-release/commit/e20695651cfd3f0dc216a6b06fd87cb8a1b34491))
+* implement theme management workflow ([a1e3112](https://github.com/pasquinphilippe/mili-release/commit/a1e311294192b0a14dbf72e56a2f8e2e9d8c0a6a))
+* Initial theme setup ([70f7116](https://github.com/pasquinphilippe/mili-release/commit/70f71162153c012f3e8452f3bd5126a2b131abc2))
+* Initial theme setup ([9a68d68](https://github.com/pasquinphilippe/mili-release/commit/9a68d68a220254bb67677c26e1c7fecf24c8745c))
+* New package/theme release ([63928b9](https://github.com/pasquinphilippe/mili-release/commit/63928b95f0ed675563906d69ae224fd5dd76c46f))
+* Sync workflows on update ([b60bf9e](https://github.com/pasquinphilippe/mili-release/commit/b60bf9e4593da33c6e01d1458a921c1a18833e04))
+
 # [1.8.0](https://github.com/pasquinphilippe/mili-release/compare/v1.7.0...v1.8.0) (2025-01-31)
 
 
