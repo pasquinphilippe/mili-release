@@ -7,47 +7,20 @@ assignees: ''
 ---
 
 ## 🐛 Bug Description
-<!-- A clear and concise description of what the bug is -->
+<!-- Clear and concise description of the bug -->
 
-## 📝 Steps To Reproduce
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+## 📝 Steps to Reproduce
+1.
+2.
+3.
 
 ## 🤔 Expected Behavior
-<!-- A clear and concise description of what you expected to happen -->
+<!-- What should have happened? -->
 
 ## 📸 Screenshots
-<!-- If applicable, add screenshots to help explain your problem -->
+<!-- If applicable, add screenshots -->
 
-## 🔍 Environment
+## 💻 Environment
 - OS: [e.g. macOS, Windows]
-- Browser: [e.g. Chrome, Safari]
-- Theme Version: [e.g. 1.0.0]
-- Device: [e.g. iPhone 12, Desktop]
-
-## 📱 Device Information (if applicable)
-- Device: [e.g. iPhone 12]
-- OS: [e.g. iOS 14.7]
-- Browser: [e.g. Safari]
-- Version: [e.g. 14]
-
-## 💻 Development Environment (if applicable)
-- Node.js Version:
-- npm Version:
-- Shopify CLI Version:
-
-## 📝 Additional Context
-<!-- Add any other context about the problem here -->
-
-## 🔍 Possible Solution
-<!-- If you have suggestions on a fix for the bug, please describe it here -->
-
-## ✅ Checklist
-<!-- Put an x in the boxes that apply. -->
-- [ ] I have read the [Contributing Guidelines](../../CONTRIBUTING.md)
-- [ ] I have checked the documentation and found no answer
-- [ ] I have checked to ensure there aren't other open [Issues](../issues) for the same problem
-- [ ] I have included all the information needed to solve the bug
-- [ ] I have added labels that best describe this issue
+- Node Version: [e.g. 16.x]
+- Package Version: [e.g. 1.7.0]

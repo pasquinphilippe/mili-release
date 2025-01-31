@@ -8,11 +8,85 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import os from 'os';
-import { argv } from 'yargs';
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
 
 // ES Module equivalents for __dirname and __filename
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// Configure CLI commands
+const argv = yargs(hideBin(process.argv))
+  .usage('Usage: $0 [command] [options]')
+  .command('$0', 'Initialize a new Shopify theme project')
+  .option('sync', {
+    alias: 's',
+    description: 'Sync workflows and configurations from @package',
+    type: 'boolean'
+  })
+  .option('connect-github', {
+    alias: 'g',
+    description: 'Connect or reconnect to a GitHub repository',
+    type: 'boolean'
+  })
+  .option('list-stores', {
+    alias: 'l',
+    description: 'List all stored store configurations',
+    type: 'boolean'
+  })
+  .option('use-stored', {
+    alias: 'u',
+    description: 'Use a stored store configuration',
+    type: 'boolean'
+  })
+  .option('remove-store', {
+    alias: 'r',
+    description: 'Remove a stored store configuration',
+    type: 'string'
+  })
+  .option('help', {
+    alias: 'h',
+    description: 'Show help',
+    type: 'boolean'
+  })
+  .help('help')
+  .version()
+  .wrap(null)
+  .epilogue('For more information, visit: https://github.com/milistack')
+  .argv;
+
+// Function to display available commands
+function displayCommands() {
+  console.log(chalk.blue('\nMili Theme CLI - Available Commands\n'));
+
+  console.log(chalk.yellow('Basic Commands:'));
+  console.log('  mili-theme                    Initialize a new theme project');
+  console.log('  mili-theme --help, -h         Show this help message');
+  console.log('  mili-theme --version          Show version number\n');
+
+  console.log(chalk.yellow('Workflow Management:'));
+  console.log('  mili-theme --sync, -s         Sync workflows and configurations');
+  console.log('  npm run sync-workflows        Sync using npm script\n');
+
+  console.log(chalk.yellow('Store Management:'));
+  console.log('  mili-theme --list-stores, -l  List stored store configurations');
+  console.log('  mili-theme --use-stored, -u   Use a stored configuration');
+  console.log('  mili-theme --remove-store, -r Remove a stored configuration\n');
+
+  console.log(chalk.yellow('GitHub Management:'));
+  console.log('  mili-theme --connect-github, -g Connect/reconnect to GitHub repository\n');
+
+  console.log(chalk.yellow('Examples:'));
+  console.log('  # Create new theme project');
+  console.log('  mili-theme\n');
+  console.log('  # Sync workflows after package update');
+  console.log('  mili-theme --sync\n');
+  console.log('  # List stored configurations');
+  console.log('  mili-theme --list-stores\n');
+
+  console.log(chalk.yellow('Documentation:'));
+  console.log('  Full documentation: https://github.com/milistack/theme-cli#readme\n');
+}
 
 // Get the templates directory path
 const getTemplatesDir = () => path.join(dirname(fileURLToPath(import.meta.url)), '../templates');
@@ -384,35 +458,6 @@ async function setupGitHub(projectName, shopifyToken, storeUrl) {
     return;
   }
 
-  let username;
-  try {
-    // Get GitHub username using gh CLI
-    username = execSync('gh api user -q .login', { encoding: 'utf8' }).trim();
-  } catch (error) {
-    console.error(chalk.red('Error getting GitHub username. Please ensure you are logged in with gh cli.'));
-    return;
-  }
-
-  async function setupGitHubSecrets(repoFullName, repoUrl) {
-    console.log('\nSetting up GitHub secrets...');
-    try {
-      await setGitHubSecrets(repoFullName, {
-        SHOPIFY_CLI_THEME_TOKEN: shopifyToken,
-        SHOPIFY_STORE_URL: storeUrl
-      });
-      console.log(chalk.green('✓ GitHub secrets configured successfully'));
-      return true;
-    } catch (error) {
-      console.error(chalk.yellow('\nWarning: Could not set GitHub secrets automatically.'));
-      console.log(chalk.cyan('\nPlease set these secrets manually in your repository settings:'));
-      console.log(chalk.cyan(`${repoUrl}/settings/secrets/actions\n`));
-      console.log(chalk.cyan('Required secrets:'));
-      console.log(chalk.cyan('- SHOPIFY_CLI_THEME_TOKEN'));
-      console.log(chalk.cyan('- SHOPIFY_STORE_URL'));
-      return false;
-    }
-  }
-
   if (githubSetup === 'create') {
     // Create new repository with project name
     const repoName = projectName.toLowerCase().replace(/[^a-z0-9-]/g, '-');
@@ -433,6 +478,9 @@ async function setupGitHub(projectName, shopifyToken, storeUrl) {
       // First create the repository on GitHub without pushing
       execSync(`gh repo create "${confirmRepoName}" --private`, { stdio: 'inherit' });
       console.log(chalk.green('✓ Repository created successfully'));
+
+      // Get GitHub username
+      const username = execSync('gh api user -q .login', { encoding: 'utf8' }).trim();
 
       // Initialize git if needed
       if (!isGitRepository()) {
@@ -465,8 +513,7 @@ async function setupGitHub(projectName, shopifyToken, storeUrl) {
         // Ignore error if remote doesn't exist
       }
 
-      const repoUrl = `https://github.com/${username}/${confirmRepoName}`;
-      execSync(`git remote add origin ${repoUrl}.git`, { stdio: 'inherit' });
+      execSync(`git remote add origin https://github.com/${username}/${confirmRepoName}.git`, { stdio: 'inherit' });
       console.log(chalk.green('✓ Remote added successfully'));
 
       // Push to remote
@@ -474,101 +521,27 @@ async function setupGitHub(projectName, shopifyToken, storeUrl) {
       console.log(chalk.green('✓ Initial code pushed successfully'));
 
       // Set up secrets
-      await setupGitHubSecrets(`${username}/${confirmRepoName}`, repoUrl);
+      console.log('\nSetting up GitHub secrets...');
+      await setGitHubSecrets(`${username}/${confirmRepoName}`, {
+        SHOPIFY_CLI_THEME_TOKEN: shopifyToken,
+        SHOPIFY_STORE_URL: storeUrl
+      });
 
     } catch (error) {
       if (error.message.includes('already exists')) {
         console.error(chalk.red('Repository already exists. Please choose a different name.'));
         return;
       }
-
-      // Fallback to manual repository setup
-      console.log(chalk.yellow('\nAutomatic repository creation failed. Let\'s set it up manually.'));
-
-      const { manualSetup } = await inquirer.prompt([
-        {
-          type: 'confirm',
-          name: 'manualSetup',
-          message: 'Would you like to connect to a manually created repository?',
-          default: true
-        }
-      ]);
-
-      if (manualSetup) {
-        const { repoUrl } = await inquirer.prompt([
-          {
-            type: 'input',
-            name: 'repoUrl',
-            message: 'Please enter your GitHub repository URL:',
-            validate: input => {
-              const isValid = /^https:\/\/github\.com\/[\w-]+\/[\w-]+(?:\.git)?$/.test(input);
-              return isValid || 'Please enter a valid GitHub repository URL (https://github.com/owner/repo)';
-            }
-          }
-        ]);
-
-        // Clean up the URL
-        const cleanRepoUrl = repoUrl.replace(/\.git$/, '');
-        const repoFullName = cleanRepoUrl.replace('https://github.com/', '');
-
-        try {
-          // Set up remote
-          try {
-            execSync('git remote remove origin', { stdio: 'pipe' });
-          } catch (error) {
-            // Ignore error if remote doesn't exist
-          }
-
-          execSync(`git remote add origin ${cleanRepoUrl}.git`, { stdio: 'inherit' });
-          console.log(chalk.green('✓ Remote added successfully'));
-
-          // Set up secrets
-          await setupGitHubSecrets(repoFullName, cleanRepoUrl);
-
-          console.log(chalk.green('\nRepository connected successfully! 🎉'));
-          console.log(chalk.blue('\nNext steps:'));
-          console.log('1. Stage your changes:', chalk.cyan('git add .'));
-          console.log('2. Create initial commit:', chalk.cyan('git commit -m "feat: Initial theme setup"'));
-          console.log('3. Push to GitHub:', chalk.cyan('git push -u origin main'));
-        } catch (error) {
-          console.error(chalk.red('\nError connecting to repository:'), error.message);
-        }
-      }
-    }
-  } else if (githubSetup === 'connect') {
-    // Handle connecting to existing repository
-    const { repoUrl } = await inquirer.prompt([
-      {
-        type: 'input',
-        name: 'repoUrl',
-        message: 'Please enter your GitHub repository URL:',
-        validate: input => {
-          const isValid = /^https:\/\/github\.com\/[\w-]+\/[\w-]+(?:\.git)?$/.test(input);
-          return isValid || 'Please enter a valid GitHub repository URL (https://github.com/owner/repo)';
-        }
-      }
-    ]);
-
-    // Clean up the URL
-    const cleanRepoUrl = repoUrl.replace(/\.git$/, '');
-    const repoFullName = cleanRepoUrl.replace('https://github.com/', '');
-
-    try {
-      // Set up remote
-      try {
-        execSync('git remote remove origin', { stdio: 'pipe' });
-      } catch (error) {
-        // Ignore error if remote doesn't exist
-      }
-
-      execSync(`git remote add origin ${cleanRepoUrl}.git`, { stdio: 'inherit' });
-      console.log(chalk.green('✓ Remote added successfully'));
-
-      // Set up secrets
-      await setupGitHubSecrets(repoFullName, cleanRepoUrl);
-
-    } catch (error) {
-      console.error(chalk.red('\nError connecting to repository:'), error.message);
+      console.error(chalk.yellow('\nWarning: Error in GitHub setup. You may need to complete these steps manually:'));
+      console.log(chalk.cyan('\n1. Create a repository on GitHub'));
+      console.log(chalk.cyan('2. Run these commands:'));
+      console.log(chalk.cyan('   git init'));
+      console.log(chalk.cyan('   git add .'));
+      console.log(chalk.cyan('   git commit -m "feat: Initial theme setup"'));
+      console.log(chalk.cyan('   git branch -M main'));
+      console.log(chalk.cyan(`   git remote add origin https://github.com/${username}/${confirmRepoName}.git`));
+      console.log(chalk.cyan('   git push -u origin main\n'));
+      console.error(chalk.red(error.message));
     }
   }
 }
@@ -741,29 +714,156 @@ async function syncWorkflowsAndConfig(projectPath = process.cwd()) {
   }
 }
 
-async function main() {
-  console.log(chalk.blue('Welcome to Mili Release - Shopify Theme Automation\n'));
+// New function to handle GitHub connection
+async function connectGitHub() {
+  console.log(chalk.blue('\nGitHub Repository Setup\n'));
 
-  // Add command line arguments handling
-  const args = process.argv.slice(2);
-  const useStored = args.includes('--use-stored');
-
-  if (args.includes('--list-stores')) {
-    await listStoredConfigs();
-    return;
-  }
-  if (args.includes('--remove-store')) {
-    const storeName = args[args.indexOf('--remove-store') + 1];
-    if (!storeName) {
-      console.error(chalk.red('Please provide a store name to remove'));
+  try {
+    // Check if GitHub CLI is installed and authenticated
+    try {
+      execSync('gh auth status', { stdio: 'ignore' });
+    } catch (error) {
+      console.log(chalk.red('\n⚠️  GitHub CLI not installed or not authenticated'));
+      console.log('Please install the GitHub CLI and run gh auth login');
       return;
     }
-    await removeStoredConfig(storeName);
+
+    // Get GitHub username
+    let username;
+    try {
+      username = execSync('gh api user -q .login', { encoding: 'utf8' }).trim();
+    } catch (error) {
+      console.error(chalk.red('Error getting GitHub username. Please ensure you are logged in with gh cli.'));
+      return;
+    }
+
+    // Get repository information
+    const answers = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'repoAction',
+        message: 'What would you like to do?',
+        choices: [
+          { name: 'Create a new repository', value: 'create' },
+          { name: 'Connect to an existing repository', value: 'connect' }
+        ]
+      },
+      {
+        type: 'input',
+        name: 'repoName',
+        message: 'Repository name:',
+        validate: input => /^[a-zA-Z0-9-_]+$/.test(input) || 'Please enter a valid repository name'
+      }
+    ]);
+
+    if (answers.repoAction === 'create') {
+      console.log(chalk.blue('\nCreating new repository...'));
+
+      try {
+        execSync(`gh repo create "${answers.repoName}" --private`, { stdio: 'inherit' });
+        console.log(chalk.green('✓ Repository created successfully'));
+      } catch (error) {
+        if (error.message.includes('already exists')) {
+          console.error(chalk.red('Repository already exists. Please choose a different name.'));
+          return;
+        }
+        throw error;
+      }
+    }
+
+    // Set up remote
+    const repoUrl = `https://github.com/${username}/${answers.repoName}`;
+
+    try {
+      execSync('git remote remove origin', { stdio: 'pipe' });
+    } catch (error) {
+      // Ignore error if remote doesn't exist
+    }
+
+    execSync(`git remote add origin ${repoUrl}.git`, { stdio: 'inherit' });
+    console.log(chalk.green('✓ Remote added successfully'));
+
+    // Set up branch protection
+    console.log(chalk.blue('\nSetting up branch protection rules...'));
+
+    try {
+      // Protect main branch
+      execSync(`gh api repos/${username}/${answers.repoName}/branches/main/protection --method PUT --field required_status_checks=null --field enforce_admins=true --field required_pull_request_reviews=null --field restrictions=null`, { stdio: 'inherit' });
+      console.log(chalk.green('✓ Branch protection rules set for main'));
+
+      // Protect staging branch
+      execSync(`gh api repos/${username}/${answers.repoName}/branches/staging/protection --method PUT --field required_status_checks=null --field enforce_admins=true --field required_pull_request_reviews=null --field restrictions=null`, { stdio: 'inherit' });
+      console.log(chalk.green('✓ Branch protection rules set for staging'));
+    } catch (error) {
+      console.log(chalk.yellow('Note: Branch protection rules will be set after first push'));
+    }
+
+    // Set up GitHub secrets
+    console.log(chalk.blue('\nSetting up GitHub secrets...'));
+
+    const secretAnswers = await inquirer.prompt([
+      {
+        type: 'password',
+        name: 'shopifyToken',
+        message: 'Enter your Shopify CLI theme token:',
+        validate: input => input.length > 0 || 'Theme token is required'
+      },
+      {
+        type: 'input',
+        name: 'shopifyStore',
+        message: 'Enter your Shopify store URL (e.g., your-store.myshopify.com):',
+        validate: input => /^[a-zA-Z0-9][a-zA-Z0-9-]*\.myshopify\.com$/.test(input) || 'Please enter a valid Shopify store URL'
+      }
+    ]);
+
+    try {
+      execSync(`gh secret set SHOPIFY_CLI_THEME_TOKEN -b"${secretAnswers.shopifyToken}" --repo=${username}/${answers.repoName}`, { stdio: 'inherit' });
+      execSync(`gh secret set SHOPIFY_STORE_URL -b"${secretAnswers.shopifyStore}" --repo=${username}/${answers.repoName}`, { stdio: 'inherit' });
+      console.log(chalk.green('✓ GitHub secrets configured successfully'));
+    } catch (error) {
+      console.error(chalk.red('Error setting GitHub secrets:'), error.message);
+      console.log(chalk.yellow('\nPlease set these secrets manually in your repository settings:'));
+      console.log('- SHOPIFY_CLI_THEME_TOKEN');
+      console.log('- SHOPIFY_STORE_URL');
+    }
+
+    console.log(chalk.green('\n✨ GitHub repository setup completed successfully!'));
+    console.log(chalk.blue('\nNext steps:'));
+    console.log('1. Push your code:', chalk.cyan('git push -u origin main'));
+    console.log('2. Create staging branch:', chalk.cyan('git checkout -b staging && git push -u origin staging'));
+    console.log('3. Review repository settings at:', chalk.cyan(repoUrl + '/settings'));
+
+  } catch (error) {
+    console.error(chalk.red('\nError during GitHub setup:'), error.message);
+  }
+}
+
+async function main() {
+  console.log(chalk.blue('Welcome to Mili Theme - Shopify Theme Automation\n'));
+
+  // Handle command line arguments
+  if (argv.help) {
+    displayCommands();
     return;
   }
 
   if (argv.sync) {
     await syncWorkflowsAndConfig();
+    return;
+  }
+
+  if (argv.listStores) {
+    await listStoredConfigs();
+    return;
+  }
+
+  if (argv.removeStore) {
+    await removeStoredConfig(argv.removeStore);
+    return;
+  }
+
+  if (argv.connectGithub) {
+    await connectGitHub();
     return;
   }
 
@@ -788,7 +888,7 @@ async function main() {
     let answers;
 
     // Try to use stored configuration if --use-stored flag is present
-    if (useStored) {
+    if (argv.useStored) {
       const storedConfig = await getStoredStoreConfig();
       if (storedConfig) {
         answers = {
@@ -820,7 +920,7 @@ async function main() {
       ]);
 
       // Get theme token (either stored or new)
-      answers.themeToken = await getThemeToken(answers.storeName, useStored);
+      answers.themeToken = await getThemeToken(answers.storeName, argv.useStored);
     }
 
     // Construct the full store URL
@@ -961,79 +1061,24 @@ async function main() {
 <h1 align="center">${answers.projectName} Shopify Theme</h1>
 
 <p align="center">
-  <a href="#-overview">Overview</a> •
   <a href="#-features">Features</a> •
-  <a href="#-prerequisites">Prerequisites</a> •
-  <a href="#-installation">Installation</a> •
+  <a href="#-getting-started">Getting Started</a> •
   <a href="#-development">Development</a> •
   <a href="#-deployment">Deployment</a> •
-  <a href="#-workflow">Workflow</a> •
-  <a href="#-commands">Commands</a>
+  <a href="#-contributing">Contributing</a>
 </p>
-
-## 📋 Overview
-
-This Shopify theme project is set up using \`@milistack/theme-cli\`, a powerful tool that automates theme development and deployment workflows. It includes semantic versioning, automated GitHub Actions, and streamlined theme management.
 
 ## ✨ Features
 
-### 🚀 Development Features
-- Automated theme setup and configuration
-- Local development server with hot reloading
-- Structured theme organization
-- Git-based version control
-- Automated semantic versioning
+- 🚀 Automated semantic versioning
+- 🔄 CI/CD with GitHub Actions
+- 📦 Shopify theme development tools
+- 🛠️ Modern development workflow
+- 📝 Automated changelog generation
+- 🔐 Secure theme deployment
 
-### 🔄 CI/CD Features
-- GitHub Actions workflows for:
-  - Theme preview on pull requests
-  - Automated staging deployments
-  - Production releases
-  - Synchronization between environments
-- Semantic release automation
-- Automated changelog generation
+## 🎯 Theme Structure
 
-### 🛡️ Security Features
-- Secure theme deployment
-- Environment-based configuration
-- Protected production environment
-- Secure secret management
-
-### 🎨 Theme Management
-- Multiple environment support (Development, Staging, Production)
-- Automated theme creation and management
-- Theme preview generation for pull requests
-- Theme synchronization between environments
-
-## 🔧 Prerequisites
-
-| Tool | Version | Purpose |
-|------|---------|---------|
-| Node.js | >= 16.x | JavaScript runtime |
-| npm | >= 8.x | Package management |
-| Shopify CLI | >= 3.x | Theme development |
-| GitHub CLI | Latest | Repository management |
-
-## 📦 Installation
-
-1. **Install Dependencies**
-   \`\`\`bash
-   npm install
-   \`\`\`
-
-2. **Configure Environment**
-   - Shopify CLI authentication
-   - GitHub repository setup
-   - Environment secrets configuration
-
-3. **Initialize Development**
-   \`\`\`bash
-   npm run theme:dev
-   \`\`\`
-
-## 💻 Development
-
-### Directory Structure
 \`\`\`
 📁 Theme Root
 ├── 📁 assets/           # Theme assets (CSS, JS, images)
@@ -1042,11 +1087,34 @@ This Shopify theme project is set up using \`@milistack/theme-cli\`, a powerful 
 ├── 📁 locales/         # Translation files
 ├── 📁 sections/        # Theme sections
 ├── 📁 snippets/        # Reusable template snippets
-├── 📁 templates/       # Page templates
-└── 📁 .github/         # GitHub Actions workflows
+└── 📁 templates/       # Page templates
 \`\`\`
 
-### Available Commands
+## 🚀 Getting Started
+
+### Prerequisites
+
+| Tool | Version | Description |
+|------|---------|-------------|
+| Node.js | >= 16 | JavaScript runtime |
+| Shopify CLI | Latest | Shopify development tools |
+| GitHub CLI | Latest | GitHub integration |
+
+### Quick Start 🏃‍♂️
+
+1. **Install Dependencies**
+   \`\`\`bash
+   npm install
+   \`\`\`
+
+2. **Start Development**
+   \`\`\`bash
+   npm run theme:dev
+   \`\`\`
+
+## 💻 Development
+
+### Available Scripts
 
 | Command | Description |
 |---------|-------------|
@@ -1056,134 +1124,78 @@ This Shopify theme project is set up using \`@milistack/theme-cli\`, a powerful 
 | \`npm run theme:push:production\` | Push to production theme |
 | \`npm run semantic-release\` | Run semantic release |
 
-## 🚀 Deployment
+## 📦 Semantic Release
 
-### Environments
+This project uses semantic-release to automate version management. Version numbers follow [Semantic Versioning](https://semver.org/).
 
-| Environment | Purpose | Theme Name | Access |
-|-------------|---------|------------|---------|
-| Development | Local development | PR-based | Developers |
-| Staging | Pre-production testing | [Staging] | Team review |
-| Production | Live store | [Production] | Protected |
-
-### Deployment Process
-
-1. **Feature Development**
-   - Create feature branch
-   - Develop and test locally
-   - Create pull request
-
-2. **Preview & Review**
-   - Automated preview theme creation
-   - Team review process
-   - Automated checks
-
-3. **Staging Deployment**
-   - Merge to staging branch
-   - Automated staging deployment
-   - QA testing
-
-4. **Production Release**
-   - Create PR to main
-   - Final review
-   - Automated semantic release
-   - Production deployment
-
-## 📝 Commit Convention
+### 📝 Commit Message Format
 
 | Type | Description | Version Impact |
 |------|-------------|----------------|
-| \`feat\` | New feature | Minor version bump |
-| \`fix\` | Bug fix | Patch version bump |
-| \`docs\` | Documentation | No version bump |
-| \`style\` | Code style | No version bump |
-| \`refactor\` | Code refactoring | Patch version bump |
-| \`perf\` | Performance improvement | Patch version bump |
-| \`test\` | Testing | No version bump |
-| \`chore\` | Maintenance | Patch version bump |
+| \`feat\` | New feature | Minor bump |
+| \`fix\` | Bug fix | Patch bump |
+| \`docs\` | Documentation | No bump |
+| \`style\` | Code style | No bump |
+| \`refactor\` | Code refactoring | Patch bump |
+| \`perf\` | Performance | Patch bump |
+| \`test\` | Testing | No bump |
+| \`chore\` | Maintenance | Patch bump |
+| \`revert\` | Revert changes | Patch bump |
 
-## 🌳 Git Workflow
+### 🌳 Branch Strategy
 
-### Branch Strategy
+| Branch | Purpose | Protection |
+|--------|---------|------------|
+| \`main\` | Production | 🔒 Protected |
+| \`staging\` | Pre-production | 🔒 Protected |
+| \`feat/*\` | Feature development | 🔓 Open |
+| \`fix/*\` | Bug fixes | 🔓 Open |
 
-| Branch | Purpose | Protection | Deployment |
-|--------|---------|------------|------------|
-| \`main\` | Production code | 🔒 Protected | Production theme |
-| \`staging\` | Pre-production | 🔒 Protected | Staging theme |
-| \`feat/*\` | Feature development | 🔓 Open | Preview theme |
-| \`fix/*\` | Bug fixes | 🔓 Open | Preview theme |
+## 🚀 Deployment Workflow
 
-### Pull Request Process
+1. 🔨 Create feature branch
+   \`\`\`bash
+   git checkout -b feat/your-feature-name
+   \`\`\`
 
-1. **Create Pull Request**
-   - Descriptive title
-   - Detailed description
-   - Link related issues
+2. 💾 Commit changes using conventional commits
+   \`\`\`bash
+   git commit -m "feat: Add new feature"
+   \`\`\`
 
-2. **Automated Checks**
-   - Commit message validation
-   - Theme preview creation
-   - Automated tests
-
-3. **Review Process**
-   - Code review
-   - Theme preview review
-   - QA testing
-
-4. **Merge Requirements**
-   - Approved reviews
-   - Passing checks
-   - Up-to-date branch
+3. 🔄 Create PR to \`staging\`
+4. 👀 Review preview theme
+5. 🎯 Merge to \`staging\`
+6. 🚀 Create PR from \`staging\` to \`main\`
 
 ## 🔄 CI/CD Pipeline
 
-### GitHub Actions Workflows
+| Stage | Trigger | Actions |
+|-------|---------|---------|
+| Validate | PR, Push | 🔍 Lint commits<br>✅ Run tests |
+| Preview | PR | 🎨 Create preview theme |
+| Release | Merge to main | 📦 Create release<br>📝 Generate changelog<br>🚀 Deploy theme |
 
-1. **Theme Preview (\`preview.yml\`)**
-   - Triggers: Pull requests
-   - Creates preview theme
-   - Posts preview URL
-   - Cleanup on PR close
+## ⚙️ Theme Configuration
 
-2. **Theme Release (\`release.yml\`)**
-   - Triggers: Push to main
-   - Runs semantic release
-   - Updates changelog
-   - Deploys to production
-
-3. **Theme Sync (\`sync.yml\`)**
-   - Triggers: Manual
-   - Syncs between themes
-   - Maintains environment parity
-
-## ⚙️ Configuration
-
-### Theme Settings
-- Store URL: \`${storeUrl}\`
-- Development theme: PR-based
-- Staging theme: [Staging] - ${answers.projectName}
-- Production theme: [Production] - ${answers.projectName}
-
-### Environment Variables
-- \`SHOPIFY_CLI_THEME_TOKEN\`: Theme access token
-- \`SHOPIFY_STORE_URL\`: Shopify store URL
-- \`GITHUB_TOKEN\`: GitHub authentication
+- 🏪 Store URL: \`${storeUrl}\`
+- 🔐 Environment: Production & Staging
+- 🌐 Theme Access: Staff accounts
 
 ## 📚 Resources
 
 - [Shopify Theme Development](https://shopify.dev/themes)
-- [GitHub Actions Documentation](https://docs.github.com/actions)
-- [Semantic Release Documentation](https://semantic-release.gitbook.io/)
+- [Semantic Release](https://semantic-release.gitbook.io/)
 - [Conventional Commits](https://www.conventionalcommits.org/)
+- [GitHub Actions](https://docs.github.com/actions)
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create feature branch
-3. Commit changes (following commit convention)
-4. Create pull request
-5. Address review feedback
-6. Get approval and merge
+1. Create feature branch
+2. Commit changes
+3. Create pull request
+4. Get review & approval
+5. Merge & deploy
 
 ## 📄 License
 
@@ -1221,4 +1233,8 @@ This project is private and confidential.
   }
 }
 
-main();
+// Execute main function
+main().catch(error => {
+  console.error(chalk.red('Error:'), error.message);
+  process.exit(1);
+});
