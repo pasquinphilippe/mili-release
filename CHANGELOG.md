@@ -1,3 +1,15 @@
+# [1.7.0](https://github.com/pasquinphilippe/mili-release/compare/v1.6.3...v1.7.0) (2025-01-31)
+
+
+### Bug Fixes
+
+* Theme-Preview ([3144435](https://github.com/pasquinphilippe/mili-release/commit/31444356c8c857b4bae8456dcbe78c18f9380396))
+
+
+### Features
+
+* Sync workflows on update ([b60bf9e](https://github.com/pasquinphilippe/mili-release/commit/b60bf9e4593da33c6e01d1458a921c1a18833e04))
+
 ## [1.6.3](https://github.com/pasquinphilippe/mili-release/compare/v1.6.2...v1.6.3) (2025-01-31)
 
 
