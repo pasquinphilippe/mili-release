@@ -219,6 +219,37 @@ async function getRemoteBranchInfo(repoPath, branchName) {
   }
 }
 
+// Helper function to create GitHub workflow files
+function setupGitHubWorkflows() {
+  const workflowDir = '.github/workflows';
+  if (!fs.existsSync(workflowDir)) {
+    fs.mkdirSync(workflowDir, { recursive: true });
+  }
+
+  const templatesDir = getTemplatesDir();
+  const workflowTemplatesDir = path.join(templatesDir, 'workflows');
+
+  // Copy each workflow file from templates
+  const workflowFiles = ['release.yml', 'preview.yml', 'sync.yml'];
+
+  for (const filename of workflowFiles) {
+    try {
+      const sourcePath = path.join(workflowTemplatesDir, filename);
+      const targetPath = path.join(workflowDir, filename);
+
+      if (fs.existsSync(sourcePath)) {
+        fs.copyFileSync(sourcePath, targetPath);
+        console.log(chalk.green(`Created ${filename}`));
+      } else {
+        console.error(chalk.yellow(`Warning: Template file ${filename} not found in package templates/workflows`));
+      }
+    } catch (error) {
+      console.error(chalk.yellow(`Warning: Could not create ${filename}`));
+      console.error(error.message);
+    }
+  }
+}
+
 async function init() {
   console.log(chalk.blue('🚀 Welcome to Mili Release - Shopify Theme Automation'));
 
@@ -276,10 +307,7 @@ async function init() {
   }
 
   // Copy GitHub Actions workflows
-  fs.writeFileSync(
-    path.join(workflowsDir, 'release.yml'),
-    readTemplateFile('workflows/release.yml')
-  );
+  setupGitHubWorkflows();
 
   // Generate README with client details
   const readmeContent = readTemplateFile('README.md')
@@ -582,6 +610,76 @@ Next steps:
     }
   } catch (error) {
     console.error(chalk.red('Error during setup:', error));
+  }
+}
+
+async function syncWorkflowsAndConfig(projectPath = process.cwd()) {
+  console.log(chalk.blue('\nSyncing workflows and configurations...\n'));
+
+  try {
+    // Define source and target paths
+    const templatesDir = getTemplatesDir();
+    const workflowTemplatesDir = path.join(templatesDir, 'workflows');
+
+    // Files to sync
+    const filesToSync = [
+      {
+        source: path.join(workflowTemplatesDir, 'preview.yml'),
+        target: '.github/workflows/theme-preview.yml',
+        type: 'workflow'
+      },
+      {
+        source: path.join(workflowTemplatesDir, 'release.yml'),
+        target: '.github/workflows/release.yml',
+        type: 'workflow'
+      },
+      {
+        source: path.join(workflowTemplatesDir, 'sync.yml'),
+        target: '.github/workflows/sync.yml',
+        type: 'workflow'
+      },
+      {
+        source: path.join(templatesDir, 'release.config.js'),
+        target: 'release.config.js',
+        type: 'config'
+      },
+      {
+        source: path.join(templatesDir, 'commitlint.config.js'),
+        target: 'commitlint.config.js',
+        type: 'config'
+      }
+    ];
+
+    // Ensure .github/workflows directory exists
+    const workflowsDir = path.join(projectPath, '.github', 'workflows');
+    if (!fs.existsSync(workflowsDir)) {
+      fs.mkdirSync(workflowsDir, { recursive: true });
+    }
+
+    // Sync each file
+    for (const file of filesToSync) {
+      if (!fs.existsSync(file.source)) {
+        console.log(chalk.yellow(`⚠️  Source file not found: ${file.source}`));
+        continue;
+      }
+
+      // Backup existing file if it exists
+      if (fs.existsSync(file.target)) {
+        const backupPath = `${file.target}.backup`;
+        fs.copyFileSync(file.target, backupPath);
+        console.log(chalk.gray(`📦 Backed up existing ${file.type}: ${file.target} → ${path.basename(backupPath)}`));
+      }
+
+      // Copy new file
+      fs.copyFileSync(file.source, file.target);
+      console.log(chalk.green(`✓ Updated ${file.type}: ${file.target}`));
+    }
+
+    console.log(chalk.green('\n✓ Successfully synced workflows and configurations!\n'));
+  } catch (error) {
+    console.error(chalk.red('\n❌ Error syncing workflows and configurations:'));
+    console.error(error.message);
+    process.exit(1);
   }
 }
 
