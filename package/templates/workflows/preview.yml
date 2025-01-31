@@ -2,38 +2,160 @@ name: Theme Preview
 
 on:
   pull_request:
-    branches: [main, staging]
+    types: [opened, synchronize, reopened, closed]
+    branches:
+      - main
+      - staging
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   preview:
+    name: Create Preview Theme
+    if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - name: Setup Shopify CLI
-        run: npm install -g @shopify/cli @shopify/theme
-      - name: Push Theme Preview
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
         env:
-          SHOPIFY_FLAG_STORE: ${{ secrets.SHOPIFY_STORE_URL }}
+          HUSKY: 0
+
+      - name: Get PR Info
+        id: pr
         run: |
-          BRANCH_NAME=$(echo ${{ github.head_ref }} | sed 's/[^a-zA-Z0-9]/-/g')
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          THEME_NAME="[PR #${PR_NUMBER}] ${BRANCH_NAME}"
-          shopify theme push --unpublished -t "${THEME_NAME}" --password ${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}
-      - name: Comment Preview URL
-        uses: actions/github-script@v7
+          echo "number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          echo "branch=${{ github.event.pull_request.head.ref }}" >> $GITHUB_OUTPUT
+          echo "base=${{ github.event.pull_request.base.ref }}" >> $GITHUB_OUTPUT
+
+      - name: Setup Shopify CLI
+        run: |
+          npm install -g @shopify/cli @shopify/theme
+
+      - name: Create Theme Name
+        id: theme
+        run: |
+          THEME_NAME="PR-${{ steps.pr.outputs.number }}-[${{ steps.pr.outputs.base }}]-${{ steps.pr.outputs.branch }}"
+          echo "name=$THEME_NAME" >> $GITHUB_OUTPUT
+
+      - name: Configure Shopify CLI
+        run: |
+          echo "::add-mask::${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}"
+          shopify theme list --password="${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}" --store="${{ secrets.SHOPIFY_STORE_URL }}"
+
+      - name: Check Existing Theme
+        id: check_theme
+        run: |
+          EXISTING_THEME=$(shopify theme list --password="${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}" --store="${{ secrets.SHOPIFY_STORE_URL }}" | grep "${{ steps.theme.outputs.name }}" || true)
+          if [ -n "$EXISTING_THEME" ]; then
+            THEME_ID=$(echo $EXISTING_THEME | awk '{print $1}')
+            echo "id=$THEME_ID" >> $GITHUB_OUTPUT
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create New Theme
+        if: steps.check_theme.outputs.exists != 'true'
+        id: create_theme
+        run: |
+          RESPONSE=$(shopify theme init "${{ steps.theme.outputs.name }}" --clone-url="https://github.com/Shopify/dawn.git" --password="${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}" --store="${{ secrets.SHOPIFY_STORE_URL }}")
+          THEME_ID=$(echo "$RESPONSE" | grep -o 'theme [0-9]\+' | grep -o '[0-9]\+' || true)
+          if [ -n "$THEME_ID" ]; then
+            echo "id=$THEME_ID" >> $GITHUB_OUTPUT
+          else
+            echo "Failed to extract theme ID from response"
+            exit 1
+          fi
+
+      - name: Set Theme ID
+        id: theme_id
+        run: |
+          if [ "${{ steps.check_theme.outputs.exists }}" = "true" ]; then
+            echo "id=${{ steps.check_theme.outputs.id }}" >> $GITHUB_OUTPUT
+          else
+            echo "id=${{ steps.create_theme.outputs.id }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Push Theme Changes
+        run: |
+          shopify theme push -t "${{ steps.theme_id.outputs.id }}" --password="${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}" --store="${{ secrets.SHOPIFY_STORE_URL }}" --allow-live
+
+      - name: Get Theme URL
+        id: url
+        run: |
+          THEME_URL="https://${{ secrets.SHOPIFY_STORE_URL }}/?preview_theme_id=${{ steps.theme_id.outputs.id }}"
+          echo "preview=$THEME_URL" >> $GITHUB_OUTPUT
+
+      - name: Find Comment
+        uses: peter-evans/find-comment@v2
+        id: find_comment
         with:
-          script: |
-            const storeDomain = process.env.SHOPIFY_STORE_URL;
-            const previewUrl = `https://${storeDomain}/admin/themes`;
-            const comment = `🎨 Theme preview has been pushed!\n\nView the theme: [${previewUrl}](${previewUrl})`;
-            github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: comment
-            });
-        env:
-          SHOPIFY_STORE_URL: ${{ secrets.SHOPIFY_STORE_URL }}
+          issue-number: ${{ steps.pr.outputs.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: Preview theme
+
+      - name: Create or Update Comment
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          comment-id: ${{ steps.find_comment.outputs.comment-id }}
+          issue-number: ${{ steps.pr.outputs.number }}
+          body: |
+            ## Preview theme for PR #${{ steps.pr.outputs.number }}
+
+            🔍 **Preview URL**: [${{ steps.theme.outputs.name }}](${{ steps.url.outputs.preview }})
+
+            This preview theme is automatically updated when new changes are pushed to this PR.
+
+            ### 📋 How to test your changes:
+            1. Click the preview link above
+            2. Review your changes in the store preview
+            3. Use the theme editor to make quick adjustments if needed
+
+            > Note: Preview themes are automatically deleted when the PR is closed
+
+  cleanup:
+    name: Cleanup Preview Theme
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Theme Name
+        id: theme
+        run: |
+          THEME_NAME="PR-${{ github.event.pull_request.number }}-[${{ github.event.pull_request.base.ref }}]-${{ github.event.pull_request.head.ref }}"
+          echo "name=$THEME_NAME" >> $GITHUB_OUTPUT
+
+      - name: Delete Preview Theme
+        run: |
+          echo "::add-mask::${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}"
+
+          # Find theme ID
+          THEME_ID=$(shopify theme list --password="${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}" --store="${{ secrets.SHOPIFY_STORE_URL }}" | grep "${{ steps.theme.outputs.name }}" | awk '{print $1}')
+
+          if [ -n "$THEME_ID" ]; then
+            echo "Deleting preview theme..."
+            shopify theme delete -t "$THEME_ID" --password="${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}" --store="${{ secrets.SHOPIFY_STORE_URL }}" --force
+            echo "✓ Preview theme deleted"
+          else
+            echo "No preview theme found to delete"
+          fi
+
+      - name: Add Cleanup Comment
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ## 🧹 Cleanup Complete
+
+            The preview theme for this PR has been deleted.

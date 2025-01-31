@@ -230,7 +230,7 @@ function setupGitHubWorkflows() {
   const workflowTemplatesDir = path.join(templatesDir, 'workflows');
 
   // Copy each workflow file from templates
-  const workflowFiles = ['release.yml', 'preview.yml', 'sync.yml'];
+  const workflowFiles = ['release.yml', 'preview.yml'];
 
   for (const filename of workflowFiles) {
     try {
@@ -617,6 +617,27 @@ async function syncWorkflowsAndConfig(projectPath = process.cwd()) {
   console.log(chalk.blue('\nSyncing workflows and configurations...\n'));
 
   try {
+    const githubDir = path.join(projectPath, '.github');
+
+    if (fs.existsSync(githubDir)) {
+      const { shouldDelete } = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'shouldDelete',
+          message: 'Existing .github directory found. Would you like to delete it before syncing? (Recommended to avoid duplicates)',
+          default: true
+        }
+      ]);
+
+      if (shouldDelete) {
+        console.log(chalk.yellow('\nDeleting existing .github directory...'));
+        fs.rmSync(githubDir, { recursive: true, force: true });
+        console.log(chalk.green('✓ Deleted existing .github directory'));
+      } else {
+        console.log(chalk.yellow('\nKeeping existing .github directory. Note: This might result in duplicate or conflicting workflows.'));
+      }
+    }
+
     // Define source and target paths
     const templatesDir = getTemplatesDir();
     const workflowTemplatesDir = path.join(templatesDir, 'workflows');
@@ -631,11 +652,6 @@ async function syncWorkflowsAndConfig(projectPath = process.cwd()) {
       {
         source: path.join(workflowTemplatesDir, 'release.yml'),
         target: '.github/workflows/release.yml',
-        type: 'workflow'
-      },
-      {
-        source: path.join(workflowTemplatesDir, 'sync.yml'),
-        target: '.github/workflows/sync.yml',
         type: 'workflow'
       },
       {
@@ -663,6 +679,11 @@ async function syncWorkflowsAndConfig(projectPath = process.cwd()) {
         continue;
       }
 
+      const targetDir = path.dirname(file.target);
+      if (!fs.existsSync(targetDir)) {
+        fs.mkdirSync(targetDir, { recursive: true });
+      }
+
       // Backup existing file if it exists
       if (fs.existsSync(file.target)) {
         const backupPath = `${file.target}.backup`;
@@ -676,6 +697,16 @@ async function syncWorkflowsAndConfig(projectPath = process.cwd()) {
     }
 
     console.log(chalk.green('\n✓ Successfully synced workflows and configurations!\n'));
+
+    // Provide git instructions if changes were made
+    console.log(chalk.blue('To apply these changes:'));
+    console.log(chalk.yellow('1. Review the changes:'));
+    console.log('   git status');
+    console.log(chalk.yellow('2. Add and commit the changes:'));
+    console.log('   git add .github/ release.config.js commitlint.config.js');
+    console.log('   git commit -m "chore: Update workflows and configurations"');
+    console.log(chalk.yellow('3. Push to your repository:'));
+    console.log('   git push\n');
   } catch (error) {
     console.error(chalk.red('\n❌ Error syncing workflows and configurations:'));
     console.error(error.message);
