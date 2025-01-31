@@ -383,6 +383,35 @@ async function setupGitHub(projectName, shopifyToken, storeUrl) {
     return;
   }
 
+  let username;
+  try {
+    // Get GitHub username using gh CLI
+    username = execSync('gh api user -q .login', { encoding: 'utf8' }).trim();
+  } catch (error) {
+    console.error(chalk.red('Error getting GitHub username. Please ensure you are logged in with gh cli.'));
+    return;
+  }
+
+  async function setupGitHubSecrets(repoFullName, repoUrl) {
+    console.log('\nSetting up GitHub secrets...');
+    try {
+      await setGitHubSecrets(repoFullName, {
+        SHOPIFY_CLI_THEME_TOKEN: shopifyToken,
+        SHOPIFY_STORE_URL: storeUrl
+      });
+      console.log(chalk.green('✓ GitHub secrets configured successfully'));
+      return true;
+    } catch (error) {
+      console.error(chalk.yellow('\nWarning: Could not set GitHub secrets automatically.'));
+      console.log(chalk.cyan('\nPlease set these secrets manually in your repository settings:'));
+      console.log(chalk.cyan(`${repoUrl}/settings/secrets/actions\n`));
+      console.log(chalk.cyan('Required secrets:'));
+      console.log(chalk.cyan('- SHOPIFY_CLI_THEME_TOKEN'));
+      console.log(chalk.cyan('- SHOPIFY_STORE_URL'));
+      return false;
+    }
+  }
+
   if (githubSetup === 'create') {
     // Create new repository with project name
     const repoName = projectName.toLowerCase().replace(/[^a-z0-9-]/g, '-');
@@ -403,9 +432,6 @@ async function setupGitHub(projectName, shopifyToken, storeUrl) {
       // First create the repository on GitHub without pushing
       execSync(`gh repo create "${confirmRepoName}" --private`, { stdio: 'inherit' });
       console.log(chalk.green('✓ Repository created successfully'));
-
-      // Get GitHub username
-      const username = execSync('gh api user -q .login', { encoding: 'utf8' }).trim();
 
       // Initialize git if needed
       if (!isGitRepository()) {
@@ -438,7 +464,8 @@ async function setupGitHub(projectName, shopifyToken, storeUrl) {
         // Ignore error if remote doesn't exist
       }
 
-      execSync(`git remote add origin https://github.com/${username}/${confirmRepoName}.git`, { stdio: 'inherit' });
+      const repoUrl = `https://github.com/${username}/${confirmRepoName}`;
+      execSync(`git remote add origin ${repoUrl}.git`, { stdio: 'inherit' });
       console.log(chalk.green('✓ Remote added successfully'));
 
       // Push to remote
@@ -446,27 +473,101 @@ async function setupGitHub(projectName, shopifyToken, storeUrl) {
       console.log(chalk.green('✓ Initial code pushed successfully'));
 
       // Set up secrets
-      console.log('\nSetting up GitHub secrets...');
-      await setGitHubSecrets(`${username}/${confirmRepoName}`, {
-        SHOPIFY_CLI_THEME_TOKEN: shopifyToken,
-        SHOPIFY_STORE_URL: storeUrl
-      });
+      await setupGitHubSecrets(`${username}/${confirmRepoName}`, repoUrl);
 
     } catch (error) {
       if (error.message.includes('already exists')) {
         console.error(chalk.red('Repository already exists. Please choose a different name.'));
         return;
       }
-      console.error(chalk.yellow('\nWarning: Error in GitHub setup. You may need to complete these steps manually:'));
-      console.log(chalk.cyan('\n1. Create a repository on GitHub'));
-      console.log(chalk.cyan('2. Run these commands:'));
-      console.log(chalk.cyan('   git init'));
-      console.log(chalk.cyan('   git add .'));
-      console.log(chalk.cyan('   git commit -m "feat: Initial theme setup"'));
-      console.log(chalk.cyan('   git branch -M main'));
-      console.log(chalk.cyan(`   git remote add origin https://github.com/${username}/${confirmRepoName}.git`));
-      console.log(chalk.cyan('   git push -u origin main\n'));
-      console.error(chalk.red(error.message));
+
+      // Fallback to manual repository setup
+      console.log(chalk.yellow('\nAutomatic repository creation failed. Let\'s set it up manually.'));
+
+      const { manualSetup } = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'manualSetup',
+          message: 'Would you like to connect to a manually created repository?',
+          default: true
+        }
+      ]);
+
+      if (manualSetup) {
+        const { repoUrl } = await inquirer.prompt([
+          {
+            type: 'input',
+            name: 'repoUrl',
+            message: 'Please enter your GitHub repository URL:',
+            validate: input => {
+              const isValid = /^https:\/\/github\.com\/[\w-]+\/[\w-]+(?:\.git)?$/.test(input);
+              return isValid || 'Please enter a valid GitHub repository URL (https://github.com/owner/repo)';
+            }
+          }
+        ]);
+
+        // Clean up the URL
+        const cleanRepoUrl = repoUrl.replace(/\.git$/, '');
+        const repoFullName = cleanRepoUrl.replace('https://github.com/', '');
+
+        try {
+          // Set up remote
+          try {
+            execSync('git remote remove origin', { stdio: 'pipe' });
+          } catch (error) {
+            // Ignore error if remote doesn't exist
+          }
+
+          execSync(`git remote add origin ${cleanRepoUrl}.git`, { stdio: 'inherit' });
+          console.log(chalk.green('✓ Remote added successfully'));
+
+          // Set up secrets
+          await setupGitHubSecrets(repoFullName, cleanRepoUrl);
+
+          console.log(chalk.green('\nRepository connected successfully! 🎉'));
+          console.log(chalk.blue('\nNext steps:'));
+          console.log('1. Stage your changes:', chalk.cyan('git add .'));
+          console.log('2. Create initial commit:', chalk.cyan('git commit -m "feat: Initial theme setup"'));
+          console.log('3. Push to GitHub:', chalk.cyan('git push -u origin main'));
+        } catch (error) {
+          console.error(chalk.red('\nError connecting to repository:'), error.message);
+        }
+      }
+    }
+  } else if (githubSetup === 'connect') {
+    // Handle connecting to existing repository
+    const { repoUrl } = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'repoUrl',
+        message: 'Please enter your GitHub repository URL:',
+        validate: input => {
+          const isValid = /^https:\/\/github\.com\/[\w-]+\/[\w-]+(?:\.git)?$/.test(input);
+          return isValid || 'Please enter a valid GitHub repository URL (https://github.com/owner/repo)';
+        }
+      }
+    ]);
+
+    // Clean up the URL
+    const cleanRepoUrl = repoUrl.replace(/\.git$/, '');
+    const repoFullName = cleanRepoUrl.replace('https://github.com/', '');
+
+    try {
+      // Set up remote
+      try {
+        execSync('git remote remove origin', { stdio: 'pipe' });
+      } catch (error) {
+        // Ignore error if remote doesn't exist
+      }
+
+      execSync(`git remote add origin ${cleanRepoUrl}.git`, { stdio: 'inherit' });
+      console.log(chalk.green('✓ Remote added successfully'));
+
+      // Set up secrets
+      await setupGitHubSecrets(repoFullName, cleanRepoUrl);
+
+    } catch (error) {
+      console.error(chalk.red('\nError connecting to repository:'), error.message);
     }
   }
 }
