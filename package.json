@@ -23,7 +23,7 @@
   },
   "scripts": {
     "test": "echo \"No tests configured\"",
-    "prepare": "husky install",
+    "prepare": "node ./node_modules/husky/lib/bin.js install",
     "semantic-release": "semantic-release",
     "dev": "nodemon bin/mili-release.js",
     "dev:test": "mkdir -p test-theme && cd test-theme && node ../bin/mili-release.js",
@@ -44,7 +44,7 @@
     "@semantic-release/github": "^9.2.6",
     "@semantic-release/npm": "^11.0.0",
     "@semantic-release/release-notes-generator": "^13.0.0",
-    "husky": "^8.0.0",
+    "husky": "^8.0.3",
     "nodemon": "^3.0.3",
     "semantic-release": "^23.0.0"
   },
