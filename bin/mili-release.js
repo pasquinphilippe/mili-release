@@ -384,6 +384,35 @@ async function setupGitHub(projectName, shopifyToken, storeUrl) {
     return;
   }
 
+  let username;
+  try {
+    // Get GitHub username using gh CLI
+    username = execSync('gh api user -q .login', { encoding: 'utf8' }).trim();
+  } catch (error) {
+    console.error(chalk.red('Error getting GitHub username. Please ensure you are logged in with gh cli.'));
+    return;
+  }
+
+  async function setupGitHubSecrets(repoFullName, repoUrl) {
+    console.log('\nSetting up GitHub secrets...');
+    try {
+      await setGitHubSecrets(repoFullName, {
+        SHOPIFY_CLI_THEME_TOKEN: shopifyToken,
+        SHOPIFY_STORE_URL: storeUrl
+      });
+      console.log(chalk.green('✓ GitHub secrets configured successfully'));
+      return true;
+    } catch (error) {
+      console.error(chalk.yellow('\nWarning: Could not set GitHub secrets automatically.'));
+      console.log(chalk.cyan('\nPlease set these secrets manually in your repository settings:'));
+      console.log(chalk.cyan(`${repoUrl}/settings/secrets/actions\n`));
+      console.log(chalk.cyan('Required secrets:'));
+      console.log(chalk.cyan('- SHOPIFY_CLI_THEME_TOKEN'));
+      console.log(chalk.cyan('- SHOPIFY_STORE_URL'));
+      return false;
+    }
+  }
+
   if (githubSetup === 'create') {
     // Create new repository with project name
     const repoName = projectName.toLowerCase().replace(/[^a-z0-9-]/g, '-');
@@ -404,9 +433,6 @@ async function setupGitHub(projectName, shopifyToken, storeUrl) {
       // First create the repository on GitHub without pushing
       execSync(`gh repo create "${confirmRepoName}" --private`, { stdio: 'inherit' });
       console.log(chalk.green('✓ Repository created successfully'));
-
-      // Get GitHub username
-      const username = execSync('gh api user -q .login', { encoding: 'utf8' }).trim();
 
       // Initialize git if needed
       if (!isGitRepository()) {
@@ -439,7 +465,8 @@ async function setupGitHub(projectName, shopifyToken, storeUrl) {
         // Ignore error if remote doesn't exist
       }
 
-      execSync(`git remote add origin https://github.com/${username}/${confirmRepoName}.git`, { stdio: 'inherit' });
+      const repoUrl = `https://github.com/${username}/${confirmRepoName}`;
+      execSync(`git remote add origin ${repoUrl}.git`, { stdio: 'inherit' });
       console.log(chalk.green('✓ Remote added successfully'));
 
       // Push to remote
@@ -447,27 +474,101 @@ async function setupGitHub(projectName, shopifyToken, storeUrl) {
       console.log(chalk.green('✓ Initial code pushed successfully'));
 
       // Set up secrets
-      console.log('\nSetting up GitHub secrets...');
-      await setGitHubSecrets(`${username}/${confirmRepoName}`, {
-        SHOPIFY_CLI_THEME_TOKEN: shopifyToken,
-        SHOPIFY_STORE_URL: storeUrl
-      });
+      await setupGitHubSecrets(`${username}/${confirmRepoName}`, repoUrl);
 
     } catch (error) {
       if (error.message.includes('already exists')) {
         console.error(chalk.red('Repository already exists. Please choose a different name.'));
         return;
       }
-      console.error(chalk.yellow('\nWarning: Error in GitHub setup. You may need to complete these steps manually:'));
-      console.log(chalk.cyan('\n1. Create a repository on GitHub'));
-      console.log(chalk.cyan('2. Run these commands:'));
-      console.log(chalk.cyan('   git init'));
-      console.log(chalk.cyan('   git add .'));
-      console.log(chalk.cyan('   git commit -m "feat: Initial theme setup"'));
-      console.log(chalk.cyan('   git branch -M main'));
-      console.log(chalk.cyan(`   git remote add origin https://github.com/${username}/${confirmRepoName}.git`));
-      console.log(chalk.cyan('   git push -u origin main\n'));
-      console.error(chalk.red(error.message));
+
+      // Fallback to manual repository setup
+      console.log(chalk.yellow('\nAutomatic repository creation failed. Let\'s set it up manually.'));
+
+      const { manualSetup } = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'manualSetup',
+          message: 'Would you like to connect to a manually created repository?',
+          default: true
+        }
+      ]);
+
+      if (manualSetup) {
+        const { repoUrl } = await inquirer.prompt([
+          {
+            type: 'input',
+            name: 'repoUrl',
+            message: 'Please enter your GitHub repository URL:',
+            validate: input => {
+              const isValid = /^https:\/\/github\.com\/[\w-]+\/[\w-]+(?:\.git)?$/.test(input);
+              return isValid || 'Please enter a valid GitHub repository URL (https://github.com/owner/repo)';
+            }
+          }
+        ]);
+
+        // Clean up the URL
+        const cleanRepoUrl = repoUrl.replace(/\.git$/, '');
+        const repoFullName = cleanRepoUrl.replace('https://github.com/', '');
+
+        try {
+          // Set up remote
+          try {
+            execSync('git remote remove origin', { stdio: 'pipe' });
+          } catch (error) {
+            // Ignore error if remote doesn't exist
+          }
+
+          execSync(`git remote add origin ${cleanRepoUrl}.git`, { stdio: 'inherit' });
+          console.log(chalk.green('✓ Remote added successfully'));
+
+          // Set up secrets
+          await setupGitHubSecrets(repoFullName, cleanRepoUrl);
+
+          console.log(chalk.green('\nRepository connected successfully! 🎉'));
+          console.log(chalk.blue('\nNext steps:'));
+          console.log('1. Stage your changes:', chalk.cyan('git add .'));
+          console.log('2. Create initial commit:', chalk.cyan('git commit -m "feat: Initial theme setup"'));
+          console.log('3. Push to GitHub:', chalk.cyan('git push -u origin main'));
+        } catch (error) {
+          console.error(chalk.red('\nError connecting to repository:'), error.message);
+        }
+      }
+    }
+  } else if (githubSetup === 'connect') {
+    // Handle connecting to existing repository
+    const { repoUrl } = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'repoUrl',
+        message: 'Please enter your GitHub repository URL:',
+        validate: input => {
+          const isValid = /^https:\/\/github\.com\/[\w-]+\/[\w-]+(?:\.git)?$/.test(input);
+          return isValid || 'Please enter a valid GitHub repository URL (https://github.com/owner/repo)';
+        }
+      }
+    ]);
+
+    // Clean up the URL
+    const cleanRepoUrl = repoUrl.replace(/\.git$/, '');
+    const repoFullName = cleanRepoUrl.replace('https://github.com/', '');
+
+    try {
+      // Set up remote
+      try {
+        execSync('git remote remove origin', { stdio: 'pipe' });
+      } catch (error) {
+        // Ignore error if remote doesn't exist
+      }
+
+      execSync(`git remote add origin ${cleanRepoUrl}.git`, { stdio: 'inherit' });
+      console.log(chalk.green('✓ Remote added successfully'));
+
+      // Set up secrets
+      await setupGitHubSecrets(repoFullName, cleanRepoUrl);
+
+    } catch (error) {
+      console.error(chalk.red('\nError connecting to repository:'), error.message);
     }
   }
 }
@@ -860,24 +961,79 @@ async function main() {
 <h1 align="center">${answers.projectName} Shopify Theme</h1>
 
 <p align="center">
+  <a href="#-overview">Overview</a> •
   <a href="#-features">Features</a> •
-  <a href="#-getting-started">Getting Started</a> •
+  <a href="#-prerequisites">Prerequisites</a> •
+  <a href="#-installation">Installation</a> •
   <a href="#-development">Development</a> •
   <a href="#-deployment">Deployment</a> •
-  <a href="#-contributing">Contributing</a>
+  <a href="#-workflow">Workflow</a> •
+  <a href="#-commands">Commands</a>
 </p>
+
+## 📋 Overview
+
+This Shopify theme project is set up using \`@milistack/theme-cli\`, a powerful tool that automates theme development and deployment workflows. It includes semantic versioning, automated GitHub Actions, and streamlined theme management.
 
 ## ✨ Features
 
-- 🚀 Automated semantic versioning
-- 🔄 CI/CD with GitHub Actions
-- 📦 Shopify theme development tools
-- 🛠️ Modern development workflow
-- 📝 Automated changelog generation
-- 🔐 Secure theme deployment
+### 🚀 Development Features
+- Automated theme setup and configuration
+- Local development server with hot reloading
+- Structured theme organization
+- Git-based version control
+- Automated semantic versioning
 
-## 🎯 Theme Structure
+### 🔄 CI/CD Features
+- GitHub Actions workflows for:
+  - Theme preview on pull requests
+  - Automated staging deployments
+  - Production releases
+  - Synchronization between environments
+- Semantic release automation
+- Automated changelog generation
 
+### 🛡️ Security Features
+- Secure theme deployment
+- Environment-based configuration
+- Protected production environment
+- Secure secret management
+
+### 🎨 Theme Management
+- Multiple environment support (Development, Staging, Production)
+- Automated theme creation and management
+- Theme preview generation for pull requests
+- Theme synchronization between environments
+
+## 🔧 Prerequisites
+
+| Tool | Version | Purpose |
+|------|---------|---------|
+| Node.js | >= 16.x | JavaScript runtime |
+| npm | >= 8.x | Package management |
+| Shopify CLI | >= 3.x | Theme development |
+| GitHub CLI | Latest | Repository management |
+
+## 📦 Installation
+
+1. **Install Dependencies**
+   \`\`\`bash
+   npm install
+   \`\`\`
+
+2. **Configure Environment**
+   - Shopify CLI authentication
+   - GitHub repository setup
+   - Environment secrets configuration
+
+3. **Initialize Development**
+   \`\`\`bash
+   npm run theme:dev
+   \`\`\`
+
+## 💻 Development
+
+### Directory Structure
 \`\`\`
 📁 Theme Root
 ├── 📁 assets/           # Theme assets (CSS, JS, images)
@@ -886,34 +1042,11 @@ async function main() {
 ├── 📁 locales/         # Translation files
 ├── 📁 sections/        # Theme sections
 ├── 📁 snippets/        # Reusable template snippets
-└── 📁 templates/       # Page templates
+├── 📁 templates/       # Page templates
+└── 📁 .github/         # GitHub Actions workflows
 \`\`\`
 
-## 🚀 Getting Started
-
-### Prerequisites
-
-| Tool | Version | Description |
-|------|---------|-------------|
-| Node.js | >= 16 | JavaScript runtime |
-| Shopify CLI | Latest | Shopify development tools |
-| GitHub CLI | Latest | GitHub integration |
-
-### Quick Start 🏃‍♂️
-
-1. **Install Dependencies**
-   \`\`\`bash
-   npm install
-   \`\`\`
-
-2. **Start Development**
-   \`\`\`bash
-   npm run theme:dev
-   \`\`\`
-
-## 💻 Development
-
-### Available Scripts
+### Available Commands
 
 | Command | Description |
 |---------|-------------|
@@ -923,78 +1056,134 @@ async function main() {
 | \`npm run theme:push:production\` | Push to production theme |
 | \`npm run semantic-release\` | Run semantic release |
 
-## 📦 Semantic Release
+## 🚀 Deployment
 
-This project uses semantic-release to automate version management. Version numbers follow [Semantic Versioning](https://semver.org/).
+### Environments
 
-### 📝 Commit Message Format
+| Environment | Purpose | Theme Name | Access |
+|-------------|---------|------------|---------|
+| Development | Local development | PR-based | Developers |
+| Staging | Pre-production testing | [Staging] | Team review |
+| Production | Live store | [Production] | Protected |
+
+### Deployment Process
+
+1. **Feature Development**
+   - Create feature branch
+   - Develop and test locally
+   - Create pull request
+
+2. **Preview & Review**
+   - Automated preview theme creation
+   - Team review process
+   - Automated checks
+
+3. **Staging Deployment**
+   - Merge to staging branch
+   - Automated staging deployment
+   - QA testing
+
+4. **Production Release**
+   - Create PR to main
+   - Final review
+   - Automated semantic release
+   - Production deployment
+
+## 📝 Commit Convention
 
 | Type | Description | Version Impact |
 |------|-------------|----------------|
-| \`feat\` | New feature | Minor bump |
-| \`fix\` | Bug fix | Patch bump |
-| \`docs\` | Documentation | No bump |
-| \`style\` | Code style | No bump |
-| \`refactor\` | Code refactoring | Patch bump |
-| \`perf\` | Performance | Patch bump |
-| \`test\` | Testing | No bump |
-| \`chore\` | Maintenance | Patch bump |
-| \`revert\` | Revert changes | Patch bump |
+| \`feat\` | New feature | Minor version bump |
+| \`fix\` | Bug fix | Patch version bump |
+| \`docs\` | Documentation | No version bump |
+| \`style\` | Code style | No version bump |
+| \`refactor\` | Code refactoring | Patch version bump |
+| \`perf\` | Performance improvement | Patch version bump |
+| \`test\` | Testing | No version bump |
+| \`chore\` | Maintenance | Patch version bump |
 
-### 🌳 Branch Strategy
+## 🌳 Git Workflow
 
-| Branch | Purpose | Protection |
-|--------|---------|------------|
-| \`main\` | Production | 🔒 Protected |
-| \`staging\` | Pre-production | 🔒 Protected |
-| \`feat/*\` | Feature development | 🔓 Open |
-| \`fix/*\` | Bug fixes | 🔓 Open |
+### Branch Strategy
 
-## 🚀 Deployment Workflow
+| Branch | Purpose | Protection | Deployment |
+|--------|---------|------------|------------|
+| \`main\` | Production code | 🔒 Protected | Production theme |
+| \`staging\` | Pre-production | 🔒 Protected | Staging theme |
+| \`feat/*\` | Feature development | 🔓 Open | Preview theme |
+| \`fix/*\` | Bug fixes | 🔓 Open | Preview theme |
 
-1. 🔨 Create feature branch
-   \`\`\`bash
-   git checkout -b feat/your-feature-name
-   \`\`\`
+### Pull Request Process
 
-2. 💾 Commit changes using conventional commits
-   \`\`\`bash
-   git commit -m "feat: Add new feature"
-   \`\`\`
+1. **Create Pull Request**
+   - Descriptive title
+   - Detailed description
+   - Link related issues
 
-3. 🔄 Create PR to \`staging\`
-4. 👀 Review preview theme
-5. 🎯 Merge to \`staging\`
-6. 🚀 Create PR from \`staging\` to \`main\`
+2. **Automated Checks**
+   - Commit message validation
+   - Theme preview creation
+   - Automated tests
+
+3. **Review Process**
+   - Code review
+   - Theme preview review
+   - QA testing
+
+4. **Merge Requirements**
+   - Approved reviews
+   - Passing checks
+   - Up-to-date branch
 
 ## 🔄 CI/CD Pipeline
 
-| Stage | Trigger | Actions |
-|-------|---------|---------|
-| Validate | PR, Push | 🔍 Lint commits<br>✅ Run tests |
-| Preview | PR | 🎨 Create preview theme |
-| Release | Merge to main | 📦 Create release<br>📝 Generate changelog<br>🚀 Deploy theme |
+### GitHub Actions Workflows
 
-## ⚙️ Theme Configuration
+1. **Theme Preview (\`preview.yml\`)**
+   - Triggers: Pull requests
+   - Creates preview theme
+   - Posts preview URL
+   - Cleanup on PR close
 
-- 🏪 Store URL: \`${storeUrl}\`
-- 🔐 Environment: Production & Staging
-- 🌐 Theme Access: Staff accounts
+2. **Theme Release (\`release.yml\`)**
+   - Triggers: Push to main
+   - Runs semantic release
+   - Updates changelog
+   - Deploys to production
+
+3. **Theme Sync (\`sync.yml\`)**
+   - Triggers: Manual
+   - Syncs between themes
+   - Maintains environment parity
+
+## ⚙️ Configuration
+
+### Theme Settings
+- Store URL: \`${storeUrl}\`
+- Development theme: PR-based
+- Staging theme: [Staging] - ${answers.projectName}
+- Production theme: [Production] - ${answers.projectName}
+
+### Environment Variables
+- \`SHOPIFY_CLI_THEME_TOKEN\`: Theme access token
+- \`SHOPIFY_STORE_URL\`: Shopify store URL
+- \`GITHUB_TOKEN\`: GitHub authentication
 
 ## 📚 Resources
 
 - [Shopify Theme Development](https://shopify.dev/themes)
-- [Semantic Release](https://semantic-release.gitbook.io/)
+- [GitHub Actions Documentation](https://docs.github.com/actions)
+- [Semantic Release Documentation](https://semantic-release.gitbook.io/)
 - [Conventional Commits](https://www.conventionalcommits.org/)
-- [GitHub Actions](https://docs.github.com/actions)
 
 ## 🤝 Contributing
 
-1. Create feature branch
-2. Commit changes
-3. Create pull request
-4. Get review & approval
-5. Merge & deploy
+1. Fork the repository
+2. Create feature branch
+3. Commit changes (following commit convention)
+4. Create pull request
+5. Address review feedback
+6. Get approval and merge
 
 ## 📄 License
 

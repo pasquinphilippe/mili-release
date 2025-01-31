@@ -56,6 +56,13 @@ This repository contains two main components:
 - 🧪 Testing framework
 - 📱 Responsive design system
 
+### Theme Features (`/package`)
+- 📦 Modular theme structure
+- 🚀 GitHub Actions workflows
+- 🔄 Semantic versioning
+- 🧪 Testing framework
+- 📱 Responsive design system
+
 ## 🛠️ Prerequisites
 | Requirement | Version | Description |
 |------------|---------|-------------|
@@ -147,6 +154,19 @@ We welcome contributions to both components of the project! Here's how to get st
 4. Test CLI functionality
 5. Submit PR with CLI improvements
 
+=======
+## 🤝 Contributing
+
+We welcome contributions to both components of the project! Here's how to get started:
+
+### Contributing to CLI (`/bin`)
+1. Fork the repository
+2. Create your feature branch from `main`
+3. Make changes to files in `/bin`
+4. Test CLI functionality
+5. Submit PR with CLI improvements
+
+
 ### Contributing to Theme (`/package`)
 1. Fork the repository
 2. Create your feature branch from `main`
@@ -159,6 +179,7 @@ See our detailed [Contributing Guide](CONTRIBUTING.md) for:
 - Commit guidelines
 - Testing requirements
 - Code style
+
 
 ## 📄 License
 MIT © [Milistack](https://github.com/milistack)

@@ -1,3 +1,11 @@
+## [1.6.3](https://github.com/pasquinphilippe/mili-release/compare/v1.6.2...v1.6.3) (2025-01-31)
+
+
+### Bug Fixes
+
+* Github creation fails often ([2598278](https://github.com/pasquinphilippe/mili-release/commit/2598278e55250c04c76889dd809085c2451fd86d))
+* Theme preview yaml error at line 32 ([4f4c3bb](https://github.com/pasquinphilippe/mili-release/commit/4f4c3bbf3d19abc4fc76a7269b5de1d3ab681f3b))
+
 ## [1.6.2](https://github.com/pasquinphilippe/mili-release/compare/v1.6.1...v1.6.2) (2025-01-24)
 
 
