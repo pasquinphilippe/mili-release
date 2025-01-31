@@ -4,12 +4,14 @@ A powerful CLI tool for automating Shopify theme development with semantic versi
 
 ## Features
 
-- 🚀 Automated semantic versioning
+- 🚀 Automated semantic versioning with semantic-release
 - 🔄 Preview themes for pull requests
 - 📦 GitHub Actions integration
-- 🛠️ Modern development workflow
+- 🛠️ Modern development workflow with Husky hooks
 - 📝 Automated changelog generation
 - 🔐 Secure theme deployment
+- ✨ Conventional commit enforcement
+- 🧪 Pre-commit test automation
 
 ## Installation
 
@@ -68,7 +70,7 @@ Want to contribute? Here's how to set up the CLI for local development:
 1. **Clone the Repository**
    ```bash
    git clone https://github.com/pasquinphilippe/mili-release.git
-   cd mili-release/package
+   cd mili-release
    ```
 
 2. **Install Dependencies**
@@ -76,97 +78,83 @@ Want to contribute? Here's how to set up the CLI for local development:
    npm install
    ```
 
-3. **Link Package Locally**
-   ```bash
-   # Create a global symlink
-   npm run link
+3. **Setup Git Hooks**
+   The project uses Husky for Git hooks:
+   - Pre-commit hook runs tests automatically
+   - Commit-msg hook ensures conventional commit format
 
-   # This will create a test directory and link the package
-   # You can now use the CLI from your test directory
-   ```
+   Hooks are installed automatically during `npm install` via the prepare script.
 
 4. **Development Scripts**
    ```bash
    # Watch mode with auto-reload
    npm run dev
 
-   # Test in a clean environment
-   npm run dev:test
+   # Run tests
+   npm test
 
-   # Remove local links
-   npm run unlink
+   # Create a release (CI environment)
+   npm run semantic-release
    ```
 
-### Testing Your Changes
+### Commit Convention
 
-1. **Create a Test Project**
-   ```bash
-   mkdir ~/test-theme
-   cd ~/test-theme
-   npm link @milistack/theme-cli
-   ```
-
-2. **Run the CLI**
-   ```bash
-   mili-theme
-   ```
-
-3. **Test Specific Features**
-   ```bash
-   # Test workflow sync
-   mili-theme --sync
-
-   # Test GitHub integration
-   mili-theme --connect-github
-   ```
-
-### Commit Guidelines
-
-We use conventional commits to automate versioning. Your commit messages should follow this format:
+We use conventional commits with specific rules:
 
 ```bash
-# Features
+# Features (triggers minor version bump)
 feat: add new command for X
 
-# Bug fixes
+# Bug fixes (triggers patch version bump)
 fix: resolve issue with Y
 
-# Documentation
+# Breaking changes (triggers major version bump)
+feat!: redesign CLI interface
+fix!: drop support for Node 16
+
+# Documentation (no version bump)
 docs: update installation instructions
 
-# Chores (no release)
+# Chores (no version bump)
 chore: update dependencies
+
+# Other types
+test: add unit tests
+refactor: improve code structure
+style: format code
+perf: improve performance
 ```
 
-### Pull Request Process
-
-1. Create a feature branch
-   ```bash
-   git checkout -b feat/your-feature
-   # or
-   git checkout -b fix/your-fix
-   ```
-
-2. Make your changes and commit using conventional commits
-
-3. Push and create a PR against the staging branch
-   ```bash
-   git push origin feat/your-feature
-   ```
-
-4. Your PR will automatically:
-   - Create a preview theme
-   - Run tests
-   - Validate commits
+Commit messages are automatically validated with the following rules:
+- Type must be one of the above
+- Subject line must be in lowercase
+- Body lines must not exceed 200 characters
+- Breaking changes must be noted with `!` or `BREAKING CHANGE:`
 
 ### Release Process
 
-Releases are automated through GitHub Actions:
+Releases are fully automated using semantic-release:
 
-- Merges to `staging` create pre-releases
-- Merges to `main` create production releases
+1. **Staging Releases**
+   - Merges to `staging` create pre-releases
+   - Version is determined by commit messages
+   - Preview themes are created automatically
 
-The version number is automatically determined based on your commits.
+2. **Production Releases**
+   - Merges to `main` trigger production releases
+   - Changelog is generated automatically
+   - GitHub release is created
+   - npm package is published
+   - Version is bumped according to semantic versioning
+
+To create a release locally (for testing):
+```bash
+# Ensure you're on main branch
+git checkout main
+
+# Run semantic-release
+CI=true GITHUB_TOKEN=your-token npm run semantic-release
+```
 
 ## Troubleshooting
 
@@ -190,6 +178,20 @@ The version number is automatically determined based on your commits.
    # Remove existing workflows and try again
    rm -rf .github/workflows
    mili-theme --sync
+   ```
+
+4. **Commit Validation Errors**
+   ```bash
+   # If your commit message is rejected
+   git commit --no-verify -m "your message"  # Bypass hooks (not recommended)
+   # or
+   HUSKY=0 git commit -m "your message"     # Bypass Husky
+   ```
+
+5. **Release Process Issues**
+   ```bash
+   # If semantic-release fails
+   HUSKY=0 CI=true GITHUB_TOKEN=your-token npm run semantic-release
    ```
 
 ## License
