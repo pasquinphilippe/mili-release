@@ -1,7 +1,15 @@
 module.exports = {
   branches: [
-    'main',
-    {name: 'staging', prerelease: true}
+    {
+      name: 'main',
+      channel: 'latest',
+      prerelease: false
+    },
+    {
+      name: 'staging',
+      channel: 'next',
+      prerelease: true
+    }
   ],
   plugins: [
     ['@semantic-release/commit-analyzer', {
@@ -9,7 +17,6 @@ module.exports = {
       releaseRules: [
         {type: 'feat', release: 'minor'},
         {type: 'fix', release: 'patch'},
-        {type: 'chore', release: 'patch'},
         {type: 'docs', release: 'patch'},
         {type: 'style', release: 'patch'},
         {type: 'refactor', release: 'patch'},
@@ -21,19 +28,30 @@ module.exports = {
     ['@semantic-release/changelog', {
       changelogFile: 'CHANGELOG.md'
     }],
+    ['@semantic-release/npm', {
+      npmPublish: true,
+      pkgRoot: '.',
+      tarballDir: 'dist',
+      distTag: process.env.BRANCH === 'staging' ? 'next' : 'latest'
+    }],
     ['@semantic-release/git', {
       assets: ['CHANGELOG.md', 'package.json'],
       message: 'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}'
     }],
-    ['@semantic-release/exec', {
-      prepareCmd: 'echo ${nextRelease.version} > version.txt',
-      publishCmd: 'shopify theme push -t ${nextRelease.version}'
-    }],
     ['@semantic-release/github', {
       assets: [
-        {path: 'version.txt', label: 'Theme Version'},
+        {path: 'dist/*.tgz', label: 'NPM package'},
         {path: 'CHANGELOG.md', label: 'Changelog'}
-      ]
+      ],
+      failComment: `🚨 Release failed due to invalid branch. Please ensure you're merging into 'staging' first.`,
+      successComment: `
+🎉 This PR is included in version \${nextRelease.version}
+
+The release is available on:
+- [npm package (@\${process.env.BRANCH === 'staging' ? 'next' : 'latest'} dist-tag)](https://www.npmjs.com/package/@milistack/theme-cli/v/\${nextRelease.version})
+- [GitHub release](https://github.com/pasquinphilippe/mili-release/releases/tag/v\${nextRelease.version})
+
+Your **[semantic-release]** bot :package::rocket:`
     }]
   ]
 };

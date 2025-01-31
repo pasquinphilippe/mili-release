@@ -1,6 +1,6 @@
 {
   "name": "@milistack/theme-cli",
-  "version": "1.8.0",
+  "version": "0.0.0-development",
   "description": "CLI tool for setting up Shopify theme semantic releases",
   "private": false,
   "type": "module",
@@ -11,20 +11,29 @@
   },
   "files": [
     "bin",
-    "templates"
+    "templates",
+    "package"
   ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "engines": {
-    "node": ">=14.16"
+    "node": ">=16.0.0"
   },
   "scripts": {
-    "theme:dev": "shopify theme dev --store=sandbox-semantic-release.myshopify.com",
-    "theme:pull": "shopify theme pull --store=sandbox-semantic-release.myshopify.com",
-    "theme:push:staging": "shopify theme push --store=sandbox-semantic-release.myshopify.com -t \"[Staging] - douda\"",
-    "theme:push:production": "shopify theme push --store=sandbox-semantic-release.myshopify.com -t \"[Production] - douda\"",
+    "theme:dev": "shopify theme dev",
+    "theme:pull": "shopify theme pull",
+    "theme:push:staging": "shopify theme push -t \"[Staging]\"",
+    "theme:push:production": "shopify theme push -t \"[Production]\"",
     "test": "echo \"No tests configured\"",
     "prepare": "husky install",
     "semantic-release": "semantic-release",
-    "sync-workflows": "mili-theme --sync"
+    "sync-workflows": "mili-theme --sync",
+    "dev": "nodemon bin/mili-release.js",
+    "dev:test": "mkdir -p test-theme && cd test-theme && node ../bin/mili-release.js",
+    "link": "npm link && echo 'Now run: mkdir ~/test-theme && cd ~/test-theme && npm link @milistack/theme-cli'",
+    "unlink": "npm unlink && cd ~/test-theme && npm unlink @milistack/theme-cli"
   },
   "dependencies": {
     "chalk": "^5.3.0",
@@ -39,7 +48,21 @@
     "@semantic-release/commit-analyzer": "^12.0.0",
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/github": "^9.2.6",
+    "@semantic-release/npm": "^11.0.0",
     "@semantic-release/release-notes-generator": "^13.0.0",
+    "nodemon": "^3.0.3",
     "semantic-release": "^23.0.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pasquinphilippe/mili-release.git"
+  },
+  "keywords": [
+    "shopify",
+    "theme",
+    "cli",
+    "semantic-release"
+  ],
+  "author": "Milistack Group inc",
+  "license": "MIT"
 }
