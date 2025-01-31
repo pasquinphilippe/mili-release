@@ -1,72 +1,109 @@
-name: Release Package
+name: Release and Publish
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    branches:
+      - main
+      - staging
 
 jobs:
-  test:
-    name: Test Package
+  verify:
+    name: Verify
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: npm ci
-      - run: npm test
-
-  lint:
-    name: Lint Commits
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - run: npm ci
-      - name: Validate Commits
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            # For pull requests, validate all commits in the PR
-            git log --format=%B ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} > commits.txt
-            while IFS= read -r commit; do
-              if [[ ! $commit =~ ^Merge\ branch && ! $commit =~ ^chore\(release\): ]]; then
-                echo "$commit" | npx commitlint
-              fi
-            done < commits.txt
-          else
-            # For direct pushes, validate only the latest commit
-            git log -1 --format=%B | npx commitlint
-          fi
+          node-version: "20"
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          HUSKY: 0
+
+      - name: Run tests
+        run: npm test
+
+      - name: Lint commits
+        run: npx commitlint --from ${{ github.event.before }} --to ${{ github.event.after }} --verbose
 
   release:
-    name: Release to NPM
-    needs: [test, lint]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    name: Create Release
+    needs: verify
     runs-on: ubuntu-latest
     permissions:
       contents: write
       issues: write
       pull-requests: write
-      packages: write
+      id-token: write
+    outputs:
+      new_release_published: ${{ steps.semantic.outputs.new_release_published }}
+      new_release_version: ${{ steps.semantic.outputs.new_release_version }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
-          registry-url: 'https://registry.npmjs.org'
-      - run: npm ci
-      - name: Release
+          node-version: "20"
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          HUSKY: 0
+
+      - name: Create Release
+        id: semantic
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "GitHub Actions"
+          npx semantic-release
+
+  publish:
+    name: Publish to NPM
+    needs: release
+    if: needs.release.outputs.new_release_published == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+        env:
           HUSKY: 0
-        run: npx semantic-release
+
+      - name: Verify package integrity
+        run: npm audit signatures
+
+      - name: Publish to NPM
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          echo "Publishing version ${{ needs.release.outputs.new_release_version }}"
+          npm publish --access public
