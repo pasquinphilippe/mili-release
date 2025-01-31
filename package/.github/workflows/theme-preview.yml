@@ -3,6 +3,9 @@ name: Theme Preview
 on:
   pull_request:
     types: [opened, synchronize, reopened, closed]
+    branches:
+      - main
+      - staging
 
 jobs:
   preview:
@@ -13,8 +16,14 @@ jobs:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
+
       - name: Install Shopify CLI
-        run: npm install -g @shopify/cli @shopify/theme
+        run: |
+          npm install -g @shopify/cli @shopify/theme
 
       - name: Get current date
         id: date
@@ -45,15 +54,17 @@ jobs:
       - name: Sync Production Changes
         if: github.base_ref == 'staging' && github.event.action != 'closed'
         env:
-          SHOPIFY_CLI_THEME_TOKEN: ${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}
-          SHOPIFY_FLAG_STORE: ${{ secrets.SHOPIFY_STORE_URL }}
+          STORE_URL: ${{ secrets.SHOPIFY_STORE_URL }}
+          THEME_TOKEN: ${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}
         run: |
+          echo "::add-mask::$THEME_TOKEN"
+
           # Get production theme ID
-          PROD_THEME=$(shopify theme list --json | jq -r '.[] | select(.role=="live") | .id')
+          PROD_THEME=$(shopify theme list --password="$THEME_TOKEN" --store="$STORE_URL" --json | jq -r '.[] | select(.role=="live") | .id')
 
           if [ -n "$PROD_THEME" ]; then
             echo "Pulling from production theme..."
-            shopify theme pull -t $PROD_THEME
+            shopify theme pull --theme="$PROD_THEME" --password="$THEME_TOKEN" --store="$STORE_URL"
           else
             echo "No production theme found"
             exit 1
@@ -61,82 +72,100 @@ jobs:
 
       - name: Manage Preview Theme
         if: github.event.action != 'closed'
+        id: preview
         env:
-          SHOPIFY_CLI_THEME_TOKEN: ${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}
-          SHOPIFY_FLAG_STORE: ${{ secrets.SHOPIFY_STORE_URL }}
+          STORE_URL: ${{ secrets.SHOPIFY_STORE_URL }}
+          THEME_TOKEN: ${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}
         run: |
+          echo "::add-mask::$THEME_TOKEN"
+
           THEME_NAME="PR-${{ steps.pr-info.outputs.pr_number }}-[${{ steps.pr-info.outputs.pr_type }}]-${{ github.head_ref }}"
           echo "THEME_NAME=$THEME_NAME" >> $GITHUB_ENV
 
           # Check if pushing to staging
           if [[ "${{ github.base_ref }}" == "staging" ]]; then
             # Use staging theme if it exists
-            STAGING_THEME=$(shopify theme list --json | jq -r '.[] | select(.name=="[Staging]") | .id')
+            STAGING_THEME=$(shopify theme list --password="$THEME_TOKEN" --store="$STORE_URL" --json | jq -r '.[] | select(.name=="[Staging]") | .id')
             if [ -n "$STAGING_THEME" ]; then
               echo "Pushing to staging theme"
-              shopify theme push -t $STAGING_THEME
+              RESULT=$(shopify theme push --theme="$STAGING_THEME" --password="$THEME_TOKEN" --store="$STORE_URL" --json)
+
+              # Extract theme information
+              THEME_ID=$STAGING_THEME
+              PREVIEW_URL=$(echo "$RESULT" | jq -r '.theme.preview_url')
+              EDITOR_URL=$(echo "$RESULT" | jq -r '.theme.editor_url')
+
+              # Set outputs
+              echo "theme_id=$THEME_ID" >> $GITHUB_OUTPUT
+              echo "preview_url=$PREVIEW_URL" >> $GITHUB_OUTPUT
+              echo "editor_url=$EDITOR_URL" >> $GITHUB_OUTPUT
               exit 0
             fi
           fi
 
           # For feature branches, create/update preview theme
-          EXISTING_THEME=$(shopify theme list --json | jq -r ".[] | select(.name==\"$THEME_NAME\") | .id")
+          EXISTING_THEME=$(shopify theme list --password="$THEME_TOKEN" --store="$STORE_URL" --json | jq -r ".[] | select(.name==\"$THEME_NAME\") | .id")
 
           if [ -n "$EXISTING_THEME" ]; then
             echo "Found existing theme with ID: $EXISTING_THEME"
-            THEME_ID=$EXISTING_THEME
-            shopify theme push -t $THEME_ID
+            RESULT=$(shopify theme push --theme="$EXISTING_THEME" --password="$THEME_TOKEN" --store="$STORE_URL" --json)
           else
             echo "Creating new theme: $THEME_NAME"
-            PUSH_OUTPUT=$(shopify theme push --unpublished --json -t "$THEME_NAME")
-
-            THEME_ID=$(echo "$PUSH_OUTPUT" | jq -r '.theme.id')
-            PREVIEW_URL=$(echo "$PUSH_OUTPUT" | jq -r '.theme.preview_url')
-            EDITOR_URL=$(echo "$PUSH_OUTPUT" | jq -r '.theme.editor_url')
+            RESULT=$(shopify theme push --unpublished --theme="$THEME_NAME" --password="$THEME_TOKEN" --store="$STORE_URL" --json)
           fi
 
-          echo "THEME_ID=$THEME_ID" >> $GITHUB_ENV
-          echo "PREVIEW_URL=$PREVIEW_URL" >> $GITHUB_ENV
-          echo "EDITOR_URL=$EDITOR_URL" >> $GITHUB_ENV
+          # Extract theme information
+          THEME_ID=$(echo "$RESULT" | jq -r '.theme.id')
+          PREVIEW_URL=$(echo "$RESULT" | jq -r '.theme.preview_url')
+          EDITOR_URL=$(echo "$RESULT" | jq -r '.theme.editor_url')
+
+          # Set outputs
+          echo "theme_id=$THEME_ID" >> $GITHUB_OUTPUT
+          echo "preview_url=$PREVIEW_URL" >> $GITHUB_OUTPUT
+          echo "editor_url=$EDITOR_URL" >> $GITHUB_OUTPUT
 
       - name: Add PR Comment
         if: github.event.action != 'closed'
-        uses: actions/github-script@v6
+        uses: peter-evans/create-or-update-comment@v3
         with:
-          script: |
-            const body = `## Shopify Theme Preview
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ## 🎨 Theme Preview Status
 
-            | Name | Status | Preview | Editor | Date | Time |
-            | :--- | :----- | :------ | :------ | :------ | :----- |
-            | ${process.env.THEME_NAME} | ✅ Ready | [Preview](${process.env.PREVIEW_URL}) | [Editor](${process.env.EDITOR_URL}) | ${process.env.date} | ${process.env.time} |
+            | Name | Status | Links | Date | Time |
+            | :--- | :----- | :---- | :--- | :--- |
+            | ${{ env.THEME_NAME }} | ✅ Ready | [Preview](${{ steps.preview.outputs.preview_url }}) • [Editor](${{ steps.preview.outputs.editor_url }}) | ${{ steps.date.outputs.date }} | ${{ steps.time.outputs.time }} |
 
-            ### Branch Information
+            ### 📋 Details
             - PR Number: #${{ steps.pr-info.outputs.pr_number }}
             - Type: ${{ steps.pr-info.outputs.pr_type }}
             - Target: ${{ github.base_ref }}
-            ${github.base_ref === 'staging' ? '\n⚠️ Production changes have been synced before preview.' : ''}
+            - Theme ID: `${{ steps.preview.outputs.theme_id }}`
 
-            *Created by Theme Preview Workflow*`;
+            ${{ github.base_ref == 'staging' && '> ⚠️ Production changes have been synced before preview.' || '' }}
 
-            await github.rest.issues.createComment({
-              ...context.repo,
-              issue_number: context.issue.number,
-              body: body
-            });
+            > This preview theme will automatically update when you push new changes.
+            >
+            > To test your changes:
+            > 1. Click the preview link above
+            > 2. Review your changes in the store preview
+            > 3. Use the theme editor to make quick adjustments if needed
 
       - name: Cleanup Theme
         if: github.event.action == 'closed'
         env:
-          SHOPIFY_CLI_THEME_TOKEN: ${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}
-          SHOPIFY_FLAG_STORE: ${{ secrets.SHOPIFY_STORE_URL }}
+          STORE_URL: ${{ secrets.SHOPIFY_STORE_URL }}
+          THEME_TOKEN: ${{ secrets.SHOPIFY_CLI_THEME_TOKEN }}
         run: |
+          echo "::add-mask::$THEME_TOKEN"
+
           THEME_NAME="PR-${{ steps.pr-info.outputs.pr_number }}-[${{ steps.pr-info.outputs.pr_type }}]-${{ github.head_ref }}"
 
-          THEME_ID=$(shopify theme list --json | jq -r ".[] | select(.name==\"$THEME_NAME\") | .id")
+          THEME_ID=$(shopify theme list --password="$THEME_TOKEN" --store="$STORE_URL" --json | jq -r ".[] | select(.name==\"$THEME_NAME\") | .id")
 
           if [ -n "$THEME_ID" ]; then
             echo "Deleting theme with ID: $THEME_ID"
-            shopify theme delete -t $THEME_ID --force
+            shopify theme delete --theme="$THEME_ID" --password="$THEME_TOKEN" --store="$STORE_URL" --force
           else
             echo "No preview theme found with name: $THEME_NAME"
           fi
