@@ -5,184 +5,175 @@
   <p><strong>A powerful CLI tool for setting up Shopify themes with semantic release automation</strong></p>
 </div>
 
-## 📋 Table of Contents
-- [Project Structure](#-project-structure)
-- [Features](#-features)
-- [Prerequisites](#-prerequisites)
-- [Installation](#-installation)
-- [Usage](#-usage)
-- [Contributing](#-contributing)
-- [Documentation](#-documentation)
-- [License](#-license)
+## 🎯 Quick Start
 
-## 🏗️ Project Structure
-
-This repository contains two main components:
-
-### 1. CLI Tool (`/bin`)
-- Main command-line interface for theme setup
-- Handles GitHub repository creation and configuration
-- Sets up automated workflows and development environment
-- **Contribute here for**:
-  - Improving setup process
-  - Adding new CLI commands
-  - Enhancing GitHub integration
-  - Fixing CLI-related bugs
-
-### 2. Theme Package (`/package`)
-- NPM package containing the base theme template
-- Located in `/package` directory
-- Published to NPM as `@milistack/theme-cli`
-- **Contribute here for**:
-  - Theme structure improvements
-  - Adding new theme features
-  - Updating theme components
-  - Modifying theme workflows
-
-## ✨ Features
-
-### CLI Features (`/bin`)
-- 🎯 One-command theme setup
-- 🔄 GitHub repository automation
-- 🛡️ Branch protection setup
-- 💾 Local configuration management
-- 🏪 Multiple store support
-- 🔄 Workflow synchronization system
-
-### Theme Features (`/package`)
-- 📦 Modular theme structure
-- 🚀 GitHub Actions workflows
-- 🔄 Semantic versioning
-- 🧪 Testing framework
-- 📱 Responsive design system
-
-### Theme Features (`/package`)
-- 📦 Modular theme structure
-- 🚀 GitHub Actions workflows
-- 🔄 Semantic versioning
-- 🧪 Testing framework
-- 📱 Responsive design system
-
-## 🛠️ Prerequisites
-| Requirement | Version | Description |
-|------------|---------|-------------|
-| Node.js | ≥ 16.x | JavaScript runtime |
-| npm/yarn | Latest | Package manager |
-| GitHub CLI | Latest | GitHub integration |
-| Shopify CLI | Latest | Theme development |
-
-## 📦 Installation
 ```bash
-# Using npm
+# Install globally
 npm install -g @milistack/theme-cli
 
-# Using yarn
-yarn global add @milistack/theme-cli
-```
-
-## 🚀 Usage
-
-### Initial Setup
-```bash
-# Create a new theme project
+# Create a new theme
+mkdir my-theme && cd my-theme
 mili-theme
-
-# Or use the alternative command
-mili-release
 ```
 
-### Workflow Management
+## 📋 What's Included
 
-#### Sync Latest Workflows
-After updating the package, you can sync your workflows and configurations:
+### 1. CLI Tool (`/bin`)
+- One-command theme setup
+- GitHub repository automation
+- Branch protection setup
+- Multiple store support
+- Workflow synchronization
+
+### 2. Theme Package (`/package`)
+- Modern Shopify theme structure
+- GitHub Actions workflows
+- Semantic versioning
+- Testing framework
+- Responsive design system
+
+## 🏗 Project Structure
+
+```
+.
+├── bin/                    # CLI implementation
+│   └── mili-release.js     # Main CLI entry point
+├── package/                # Theme package
+│   ├── templates/          # Project templates
+│   ├── workflows/          # GitHub Actions
+│   └── config/            # Default configs
+├── docs/                  # Documentation
+└── tests/                # Test suites
+```
+
+## 🔄 Development Conventions
+
+### Branch Strategy
+```
+main (production)
+  └── staging (development)
+       ├── feature/xyz
+       ├── fix/xyz
+       └── docs/xyz
+```
+
+### Commit Convention
+We follow [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+<type>(<scope>): <description>
+
+[optional body]
+[optional footer]
+```
+
+**Types:**
+- `feat`: New feature (minor)
+- `fix`: Bug fix (patch)
+- `docs`: Documentation
+- `style`: Code style
+- `refactor`: Code changes
+- `test`: Testing
+- `chore`: Maintenance
+
+**Examples:**
 ```bash
-# Using npm script
+feat(cli): Add new store management command
+fix(workflows): Correct staging deployment path
+docs(readme): Update installation instructions
+```
+
+## 🛠️ Requirements
+
+| Tool | Version | Purpose |
+|------|---------|----------|
+| Node.js | ≥ 16.x | Runtime |
+| npm/yarn | Latest | Package manager |
+| GitHub CLI | Latest | Repository setup |
+| Shopify CLI | Latest | Theme development |
+
+## 📦 Available Commands
+
+```bash
+# Show help
+mili-theme --help
+
+# Sync workflows
+mili-theme --sync
+
+# Connect GitHub
+mili-theme --connect-github
+
+# Manage stores
+mili-theme --list-stores     # List stores
+mili-theme --use-stored      # Use stored config
+mili-theme --remove-store    # Remove store
+```
+
+## 🔄 Workflow Management
+
+### Sync Latest Updates
+```bash
 npm run sync-workflows
-
-# Or using CLI directly
-mili-release --sync
+# or
+mili-theme --sync
 ```
 
-This will:
-- Update GitHub Actions workflows
-- Sync release configurations
-- Create backups of existing files
-- Preserve your custom configurations
+This updates:
+- GitHub Actions workflows
+- Release configurations
+- Commit validation
+- (Creates backups automatically)
 
-#### Files Synced:
-- `.github/workflows/theme-preview.yml`
-- `.github/workflows/release.yml`
-- `release.config.js`
-- `commitlint.config.js`
-
-### Store Management
+### GitHub Setup
 ```bash
-# List stored configurations
-mili-release --list-stores
-
-# Use stored configuration
-mili-release --use-stored
-
-# Remove stored configuration
-mili-release --remove-store <store-name>
+mili-theme --connect-github
 ```
+
+Sets up:
+- Repository creation/connection
+- Branch protection (main/staging)
+- GitHub secrets
+- Remote configuration
+
+## 🔒 Best Practices
+
+### Security
+- Store sensitive data in GitHub Secrets
+- Use environment variables for configuration
+- Never commit API keys or tokens
+- Use `.gitignore` for sensitive files
+
+### Code Quality
+- Follow ESLint configuration
+- Write meaningful commit messages
+- Add tests for new features
+- Document public APIs
+
+### Workflow
+- Create feature branches from `staging`
+- Keep PRs focused and small
+- Update documentation with changes
+- Add labels to PRs and issues
 
 ## 📚 Documentation
 
-### CLI Documentation
-- [CLI Configuration](docs/CLI_CONFIGURATION.md)
-- [CLI Commands](docs/CLI_COMMANDS.md)
-- [CLI Development](docs/CLI_DEVELOPMENT.md)
-
-### Theme Documentation
-- [Theme Structure](docs/THEME_STRUCTURE.md)
-- [Theme Components](docs/THEME_COMPONENTS.md)
-- [Theme Development](docs/THEME_DEVELOPMENT.md)
-
-### General Documentation
-- [Contributing Guide](CONTRIBUTING.md)
-- [Changelog](CHANGELOG.md)
+- [CLI Guide](https://github.com/pasquinphilippe/mili-release/blob/main/docs/CLI_COMMANDS.md)
+- [Theme Structure](https://github.com/pasquinphilippe/mili-release/blob/main/docs/THEME_STRUCTURE.md)
+- [Contributing](https://github.com/pasquinphilippe/mili-release/blob/main/CONTRIBUTING.md)
+- [Changelog](https://github.com/pasquinphilippe/mili-release/blob/main/CHANGELOG.md)
 
 ## 🤝 Contributing
 
-We welcome contributions to both components of the project! Here's how to get started:
-
-### Contributing to CLI (`/bin`)
 1. Fork the repository
-2. Create your feature branch from `main`
-3. Make changes to files in `/bin`
-4. Test CLI functionality
-5. Submit PR with CLI improvements
+2. Create your feature branch
+3. Make your changes
+4. Submit a pull request
 
-=======
-## 🤝 Contributing
+See [Contributing Guide](https://github.com/pasquinphilippe/mili-release/blob/main/CONTRIBUTING.md) for details.
 
-We welcome contributions to both components of the project! Here's how to get started:
-
-### Contributing to CLI (`/bin`)
-1. Fork the repository
-2. Create your feature branch from `main`
-3. Make changes to files in `/bin`
-4. Test CLI functionality
-5. Submit PR with CLI improvements
-
-
-### Contributing to Theme (`/package`)
-1. Fork the repository
-2. Create your feature branch from `main`
-3. Make changes to files in `/package`
-4. Test theme functionality
-5. Submit PR with theme improvements
-
-See our detailed [Contributing Guide](CONTRIBUTING.md) for:
-- Development workflow
-- Commit guidelines
-- Testing requirements
-- Code style
-
-
-## 📄 License
-MIT © [Milistack](https://github.com/milistack)
+## 📝 License
+MIT © [Milistack](https://github.com/pasquinphilippe/mili-release)
 
 ---
 <div align="center">

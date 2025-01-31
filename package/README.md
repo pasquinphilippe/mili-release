@@ -50,7 +50,7 @@ cd my-theme
 
 2. Run the CLI:
 ```bash
-mili-release
+mili-theme
 ```
 
 3. Follow the prompts to:
@@ -68,7 +68,7 @@ After updating the package, you can sync your workflows and configurations witho
 npm run sync-workflows
 
 # Or using CLI directly
-mili-release --sync
+mili-theme --sync
 ```
 
 This will:

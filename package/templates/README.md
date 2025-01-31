@@ -1,93 +1,170 @@
 # ${clientName} Shopify Theme
 
-## Overview
-This is a custom Shopify theme for ${storeUrl}. The theme uses semantic versioning and automated deployments through GitHub Actions.
+<div align="center">
+  <strong>Custom Shopify theme for ${storeUrl}</strong>
+</div>
 
-## 🏗 Theme Structure
-```
-├── assets/
-│   └── Static assets like CSS, JS, images
-├── config/
-│   └── Theme settings and configuration
-├── layout/
-│   └── Theme layout templates
-├── locales/
-│   └── Translation files
-├── sections/
-│   └── Modular, reusable sections
-├── snippets/
-│   └── Reusable code snippets
-└── templates/
-    └── Page templates
-```
+## 🚀 Quick Start
 
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js (v16 or higher)
-- [Shopify CLI](https://shopify.dev/themes/tools/cli)
-- GitHub account with repository access
-
-### Installation
-1. Clone the repository:
+1. **Clone and Install**
    ```bash
    git clone ${repoUrl}
    cd ${repoName}
-   ```
-
-2. Install dependencies:
-   ```bash
    npm install
    ```
 
-3. Set up environment variables:
-   Create a `.env` file with:
+2. **Set Up Environment**
+   ```bash
+   # Create .env file
+   echo "SHOPIFY_FLAG_STORE=${storeUrl}" >> .env
+   echo "SHOPIFY_CLI_THEME_TOKEN=your_theme_token" >> .env
    ```
-   SHOPIFY_FLAG_STORE=${storeUrl}
-   SHOPIFY_CLI_THEME_TOKEN=your_theme_token
+
+3. **Start Development**
+   ```bash
+   npm run theme:dev
    ```
 
-### Development Commands
-- Pull theme from Shopify:
-  ```bash
-  npm run theme:pull
-  ```
-- Push changes to Shopify:
-  ```bash
-  npm run theme:push
-  ```
+## 📁 Theme Structure
 
-## 🔄 Version Control & Deployment
+```
+theme/
+├── assets/           # Static assets
+│   ├── css/         # Stylesheets
+│   ├── js/          # JavaScript files
+│   └── images/      # Theme images
+├── config/          # Theme settings
+│   ├── settings_data.json
+│   └── settings_schema.json
+├── layout/          # Layout templates
+│   ├── theme.liquid
+│   └── password.liquid
+├── locales/         # Translations
+│   └── en.default.json
+├── sections/        # Theme sections
+│   ├── header.liquid
+│   └── footer.liquid
+├── snippets/        # Reusable code
+│   └── product-card.liquid
+└── templates/       # Page templates
+    ├── index.liquid
+    ├── product.liquid
+    └── collection.liquid
+```
 
-### Branch Structure
-- \`main\`: Production theme
-- \`development\`: Main development branch
-- Feature branches: \`feature/*\`
-- Bug fixes: \`fix/*\`
+## 🛠️ Development
+
+### Common Commands
+```bash
+# Start development server
+npm run theme:dev
+
+# Pull theme from Shopify
+npm run theme:pull
+
+# Push to staging
+npm run theme:push:staging
+
+# Push to production
+npm run theme:push:production
+```
+
+### Development Flow
+
+1. **Local Development**
+   ```bash
+   npm run theme:dev
+   ```
+   - Live preview at `https://${storeUrl}?preview_theme_id=xxx`
+   - Auto-reloads on changes
+   - Shows build errors
+
+2. **Staging Deployment**
+   ```bash
+   npm run theme:push:staging
+   ```
+   - Creates/updates "[Staging]" theme
+   - For testing before production
+
+3. **Production Deployment**
+   ```bash
+   npm run theme:push:production
+   ```
+   - Deploys to production theme
+   - Only from `main` branch
+
+### Git Workflow
+
+1. **Branch Structure**
+   ```
+   main (production)
+   └── staging (development)
+        ├── feature/xyz
+        ├── fix/xyz
+        └── docs/xyz
+   ```
+
+2. **Development Process**
+   - Create branch from `staging`
+   - Develop and test locally
+   - Push to staging theme
+   - Create PR to `staging`
+   - After review, merge to `main`
 
 ### Commit Convention
-We use [Conventional Commits](https://www.conventionalcommits.org/) for automated versioning:
+We use [Conventional Commits](https://www.conventionalcommits.org/):
 
-- \`feat:\` New features
-- \`fix:\` Bug fixes
-- \`docs:\` Documentation changes
-- \`style:\` Code style changes
-- \`refactor:\` Code refactoring
-- \`test:\` Adding/updating tests
-- \`chore:\` Maintenance tasks
+```
+<type>(<scope>): <description>
 
-### Automated Deployments
-1. Create a feature branch from \`development\`
-2. Make your changes
-3. Commit using conventional commit format
-4. Push and create a PR to \`development\`
-5. Once merged, changes will be automatically deployed to staging
-6. Create a PR from \`development\` to \`main\` for production deployment
+[optional body]
+[optional footer]
+```
 
-## 🔒 Security
+**Types:**
+- `feat`: New features (minor)
+- `fix`: Bug fixes (patch)
+- `docs`: Documentation
+- `style`: Code style
+- `refactor`: Code changes
+- `test`: Testing
+- `chore`: Maintenance
+
+**Examples:**
+```bash
+feat(header): Add new navigation menu
+fix(cart): Resolve checkout button issue
+style(product): Update card layout
+```
+
+## 🔒 Security Best Practices
+
+### Environment Variables
+- Store in `.env` file (gitignored)
 - Never commit sensitive data
-- Store API keys and tokens in GitHub Secrets
-- Use environment variables for configuration
+- Use GitHub Secrets for CI/CD
+
+### Access Control
+- Protect `main` branch
+- Require PR reviews
+- Use environment-specific tokens
+
+## 📚 Resources
+
+### Documentation
+- [Shopify Theme Docs](https://shopify.dev/themes)
+- [Liquid Reference](https://shopify.dev/api/liquid)
+- [Theme Kit](https://shopify.github.io/themekit)
+
+### Development Tools
+- [Theme Check](https://github.com/shopify/theme-check)
+- [Lighthouse CI](https://github.com/GoogleChrome/lighthouse-ci)
+- [Shopify CLI](https://shopify.dev/themes/tools/cli)
+
+### Best Practices
+- [Shopify Theme Best Practices](https://shopify.dev/themes/best-practices)
+- [Liquid Code Style](https://shopify.dev/api/liquid/basics)
+- [Performance Guidelines](https://shopify.dev/themes/best-practices/performance)
 
 ## 📝 License
 Private and Confidential - ${clientName}

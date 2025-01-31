@@ -1,71 +1,66 @@
-# Contributing to Mili Release
+# 🤝 Contributing to Theme Package
 
-We love your input! We want to make contributing to Mili Release as easy and transparent as possible, whether it's:
+## Quick Start
 
-- Reporting a bug
-- Discussing the current state of the code
-- Submitting a fix
-- Proposing new features
-- Becoming a maintainer
+1. **Setup**
+   ```bash
+   git clone https://github.com/pasquinphilippe/mili-release.git
+   cd mili-release/package
+   npm install
+   ```
 
-## Development Process
+2. **Development**
+   ```bash
+   # Create test theme
+   mkdir ../test-theme
+   cd ../test-theme
+   node ../bin/mili-release.js
+   ```
 
-We use GitHub to host code, to track issues and feature requests, as well as accept pull requests.
+## 📝 Making Changes
 
-1. Fork the repo and create your branch from `main`
-2. If you've added code that should be tested, add tests
-3. If you've changed APIs, update the documentation
-4. Ensure the test suite passes
-5. Make sure your code lints
-6. Issue that pull request!
-
-## Commit Convention
-
-We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
-
+### Theme Structure
 ```
-type(scope): Subject
-
-[optional body]
-[optional footer]
+package/
+├── templates/     # Theme templates
+├── workflows/     # GitHub Actions
+└── config/       # Default configs
 ```
 
-Types:
-- `feat`: New feature (minor version)
-- `fix`: Bug fix (patch version)
-- `docs`: Documentation changes
-- `style`: Code style changes
-- `refactor`: Code refactoring
-- `perf`: Performance improvements
-- `test`: Adding tests
-- `chore`: Maintenance tasks
+### Workflow
+1. Create feature branch
+2. Make changes
+3. Test in test theme
+4. Create pull request
 
-Example:
+### Commit Style
 ```bash
-git commit -m "feat: Add new template generation feature"
-git commit -m "fix: Correct path resolution in Windows"
+# Adding features
+feat(theme): Add new section template
+feat(workflow): Add deployment step
+
+# Fixing issues
+fix(template): Correct liquid syntax
+fix(config): Update default settings
+
+# Documentation
+docs(readme): Update theme structure
 ```
 
-## Local Development
+## 🧪 Testing
+- Test all changes in a test theme
+- Verify with Theme Check
+- Test in both development and production
 
-1. Clone the repository:
-```bash
-git clone https://github.com/your-username/mili-release.git
-cd mili-release
-```
+## 📚 Documentation
+- Update relevant README sections
+- Document new features
+- Add inline comments
 
-2. Install dependencies:
-```bash
-npm install
-```
+## ❓ Need Help?
+- Check [documentation](https://github.com/pasquinphilippe/mili-release#-documentation)
+- Open an [issue](https://github.com/pasquinphilippe/mili-release/issues)
+- Ask in [discussions](https://github.com/pasquinphilippe/mili-release/discussions)
 
-3. Create a test theme:
-```bash
-mkdir test-theme
-cd test-theme
-node ../bin/mili-release.js
-```
-
-## License
-
-By contributing, you agree that your contributions will be licensed under its MIT License.
+## 📜 License
+MIT License - See [LICENSE](https://github.com/pasquinphilippe/mili-release/blob/main/LICENSE)
