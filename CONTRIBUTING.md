@@ -1,68 +1,66 @@
-# 🤝 Contributing to Mili Theme CLI
+# 🤝 Contributing to Theme Package
 
 ## Quick Start
 
-1. **Fork & Clone**
+1. **Setup**
    ```bash
    git clone https://github.com/pasquinphilippe/mili-release.git
-   cd mili-release
-   ```
-
-2. **Install**
-   ```bash
+   cd mili-release/package
    npm install
    ```
 
-3. **Create Branch**
+2. **Development**
    ```bash
-   git checkout -b feature/your-feature
-   # or
-   git checkout -b fix/your-fix
+   # Create test theme
+   mkdir ../test-theme
+   cd ../test-theme
+   node ../bin/mili-release.js
    ```
 
 ## 📝 Making Changes
 
-### Commit Messages
-```bash
-# Features
-feat(scope): Add new feature
-# Example: feat(cli): Add store list command
+### Theme Structure
+```
+package/
+├── templates/     # Theme templates
+├── workflows/     # GitHub Actions
+└── config/       # Default configs
+```
 
-# Bug Fixes
-fix(scope): Fix issue
-# Example: fix(sync): Correct workflow sync path
+### Workflow
+1. Create feature branch
+2. Make changes
+3. Test in test theme
+4. Create pull request
+
+### Commit Style
+```bash
+# Adding features
+feat(theme): Add new section template
+feat(workflow): Add deployment step
+
+# Fixing issues
+fix(template): Correct liquid syntax
+fix(config): Update default settings
 
 # Documentation
-docs(scope): Update docs
-# Example: docs(readme): Add usage examples
+docs(readme): Update theme structure
 ```
-
-### Pull Requests
-1. Update your branch with main
-2. Push your changes
-3. Create PR with clear title and description
-4. Wait for review
 
 ## 🧪 Testing
-```bash
-# Run tests
-npm test
-
-# Test CLI locally
-mkdir test-theme
-cd test-theme
-node ../bin/mili-release.js
-```
+- Test all changes in a test theme
+- Verify with Theme Check
+- Test in both development and production
 
 ## 📚 Documentation
-- Update README.md if needed
-- Add JSDoc comments for new functions
-- Update CLI help messages
+- Update relevant README sections
+- Document new features
+- Add inline comments
 
-## ❓ Questions?
+## ❓ Need Help?
+- Check [documentation](https://github.com/pasquinphilippe/mili-release#-documentation)
 - Open an [issue](https://github.com/pasquinphilippe/mili-release/issues)
-- Ask in PR comments
-- Check [existing docs](https://github.com/pasquinphilippe/mili-release#-documentation)
+- Ask in [discussions](https://github.com/pasquinphilippe/mili-release/discussions)
 
 ## 📜 License
-By contributing, you agree that your contributions will be licensed under the MIT License.
+MIT License - See [LICENSE](https://github.com/pasquinphilippe/mili-release/blob/main/LICENSE)

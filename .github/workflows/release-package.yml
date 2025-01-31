@@ -1,7 +1,4 @@
-name: Release-Package
-# Workflow for automated semantic versioning and npm package publishing
-# Triggers on push to main and pull requests
-# Runs tests, lints commits, and publishes new versions to npm
+name: Release Package
 
 on:
   push:
@@ -11,6 +8,7 @@ on:
 
 jobs:
   test:
+    name: Test Package
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,6 +19,7 @@ jobs:
       - run: npm test
 
   lint:
+    name: Lint Commits
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,25 +29,23 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
-      - name: Lint new commits
+      - name: Validate Commits
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            # For pull requests, check all commits except merge commits
-            git log --format=%B ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} |
-            grep -v "^Merge branch" |
-            grep -v "chore(release):" |
-            while read commit; do
-              echo "$commit" | npx commitlint
-            done
+            # For pull requests, validate all commits in the PR
+            git log --format=%B ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} > commits.txt
+            while IFS= read -r commit; do
+              if [[ ! $commit =~ ^Merge\ branch && ! $commit =~ ^chore\(release\): ]]; then
+                echo "$commit" | npx commitlint
+              fi
+            done < commits.txt
           else
-            # For pushes, check only the latest commit if it's not a merge or release commit
-            commit_msg=$(git log -1 --format=%B)
-            if [[ ! $commit_msg =~ ^Merge\ branch && ! $commit_msg =~ ^chore\(release\): ]]; then
-              echo "$commit_msg" | npx commitlint
-            fi
+            # For direct pushes, validate only the latest commit
+            git log -1 --format=%B | npx commitlint
           fi
 
   release:
+    name: Release to NPM
     needs: [test, lint]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
